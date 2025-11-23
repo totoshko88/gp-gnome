@@ -1,0 +1,5 @@
+node_modules/
+build/
+dist/
+schemas/gschemas.compiled
+*.min.js

@@ -8,6 +8,8 @@
 
 Designed for **GlobalProtect CLI** (also known as **PanGPLinux**) - the official Palo Alto Networks VPN client for Linux.
 
+> **Trademark Notice**: GlobalProtect is a registered trademark of Palo Alto Networks, Inc. This extension is an independent project and is not affiliated with, endorsed by, or sponsored by Palo Alto Networks, Inc.
+
 ## ✨ Features
 
 ### Core Functionality

@@ -1,0 +1,100 @@
+{
+  "env": {
+    "es2021": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "indent": ["error", 4, {
+      "SwitchCase": 1
+    }],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single", {
+      "avoidEscape": true
+    }],
+    "semi": ["error", "always"],
+    "no-unused-vars": ["error", {
+      "args": "none",
+      "varsIgnorePattern": "^_"
+    }],
+    "no-constant-condition": ["error", {
+      "checkLoops": false
+    }],
+    "prefer-const": "error",
+    "no-var": "error",
+    "prefer-arrow-callback": "error",
+    "arrow-spacing": "error",
+    "prefer-template": "error",
+    "template-curly-spacing": "error",
+    "no-trailing-spaces": "error",
+    "eol-last": "error",
+    "comma-dangle": ["error", "never"],
+    "comma-spacing": "error",
+    "comma-style": "error",
+    "computed-property-spacing": "error",
+    "func-call-spacing": "error",
+    "key-spacing": "error",
+    "keyword-spacing": "error",
+    "object-curly-spacing": ["error", "never"],
+    "space-before-blocks": "error",
+    "space-before-function-paren": ["error", {
+      "anonymous": "never",
+      "named": "never",
+      "asyncArrow": "always"
+    }],
+    "space-infix-ops": "error",
+    "space-unary-ops": "error",
+    "spaced-comment": "error",
+    "switch-colon-spacing": "error",
+    "arrow-parens": ["error", "as-needed"],
+    "brace-style": "error",
+    "camelcase": ["error", {
+      "properties": "never",
+      "allow": ["^[A-Z_]+$"]
+    }],
+    "eqeqeq": "error",
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "imports.lang",
+        "property": "copyProperties",
+        "message": "Use Object.assign()"
+      },
+      {
+        "object": "Lang",
+        "property": "copyProperties",
+        "message": "Use Object.assign()"
+      },
+      {
+        "object": "Lang",
+        "property": "bind",
+        "message": "Use arrow notation or Function.prototype.bind()"
+      },
+      {
+        "object": "Lang",
+        "property": "Class",
+        "message": "Use ES6 classes"
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "MethodDefinition[key.name=\"_init\"] > FunctionExpression[params.length=1] > BlockStatement[body.length=1] CallExpression[arguments.length=1][callee.object.type=\"Super\"][callee.property.name=\"_init\"]",
+        "message": "Non-chaining _init() call with a single parameter can be omitted"
+      }
+    ]
+  },
+  "globals": {
+    "log": "readonly",
+    "logError": "readonly",
+    "print": "readonly",
+    "printerr": "readonly",
+    "global": "readonly",
+    "imports": "readonly",
+    "pkg": "readonly",
+    "ARGV": "readonly"
+  }
+}

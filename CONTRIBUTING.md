@@ -67,6 +67,8 @@ gnome-extensions enable globalprotect@username.github.io
    - Follow existing code style
    - Use meaningful variable names
    - Add comments for complex logic
+   - Run ESLint before committing: `npm run lint`
+   - Fix linting issues: `npm run lint:fix`
 
 3. **Testing**
    - Write unit tests for new functionality

@@ -7,9 +7,12 @@
     "test": "npm run test:unit && npm run test:properties",
     "test:unit": "jasmine",
     "test:properties": "node --experimental-vm-modules node_modules/jasmine/bin/jasmine.js --config=tests/properties/jasmine.json",
-    "test:all": "npm test"
+    "test:all": "npm test",
+    "lint": "eslint *.js",
+    "lint:fix": "eslint --fix *.js"
   },
   "devDependencies": {
+    "eslint": "^8.57.0",
     "fast-check": "^3.15.0",
     "jasmine": "^5.1.0"
   }
