@@ -1,0 +1,48 @@
+# Screenshots Directory
+
+Place extension screenshots here for documentation and extensions.gnome.org submission.
+
+## Required Screenshots
+
+1. **disconnected.png** - Extension icon when VPN is disconnected
+2. **menu.png** - Main menu showing connection status and options
+3. **connected.png** - Extension showing active VPN connection with details
+4. **settings.png** - Configuration interface for portal address
+5. **advanced.png** - Advanced operations submenu
+
+## Screenshot Guidelines
+
+- Use PNG format
+- Minimum resolution: 800x600
+- Show clear, readable UI elements
+- Use default GNOME theme for consistency
+- Capture actual functionality, not mockups
+- Include relevant context (system tray, menu, etc.)
+
+## Taking Screenshots
+
+### On GNOME
+
+1. Press `PrtScn` for full screen
+2. Press `Alt+PrtScn` for active window
+3. Press `Shift+PrtScn` for area selection
+
+### Using GNOME Screenshot Tool
+
+```bash
+gnome-screenshot -w  # Window screenshot
+gnome-screenshot -a  # Area screenshot
+gnome-screenshot     # Full screen
+```
+
+### Editing Screenshots
+
+Use GNOME Image Viewer or GIMP to crop and edit screenshots.
+
+## Usage
+
+These screenshots are referenced in:
+- README.md
+- extensions.gnome.org submission
+- GitHub releases
+- Documentation

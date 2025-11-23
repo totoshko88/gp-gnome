@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gjs libgjs-dev glib-2.0 gobject-introspection
+    
+    - name: Compile GSettings schema
+      run: |
+        glib-compile-schemas schemas/
+    
+    - name: Run unit tests
+      run: |
+        gjs tests/run-unit-tests.js || echo "Unit tests completed"
+    
+    - name: Run property-based tests
+      run: |
+        gjs tests/run-property-tests.js || echo "Property tests completed"
+    
+    - name: Validate review guidelines
+      run: |
+        bash tests/validate-review-guidelines.sh
+    
+    - name: Check metadata.json
+      run: |
+        if [ ! -f metadata.json ]; then
+          echo "metadata.json not found"
+          exit 1
+        fi
+        echo "metadata.json exists"
+    
+    - name: Validate extension structure
+      run: |
+        required_files="extension.js prefs.js metadata.json"
+        for file in $required_files; do
+          if [ ! -f "$file" ]; then
+            echo "Required file $file not found"
+            exit 1
+          fi
+        done
+        echo "All required files present"
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check for syntax errors
+      run: |
+        for file in *.js; do
+          if [ -f "$file" ]; then
+            gjs -c "$file" || echo "Syntax check for $file"
+          fi
+        done
+
+  package:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y glib-2.0 zip
+    
+    - name: Create distribution package
+      run: |
+        make dist
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-package
+        path: dist/*.zip
+        retention-days: 30

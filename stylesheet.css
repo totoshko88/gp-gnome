@@ -1,0 +1,147 @@
+/* GlobalProtect Extension Stylesheet */
+/* Following GNOME HIG (Human Interface Guidelines) */
+
+/* ============================================
+   Panel Indicator
+   ============================================ */
+
+/* Status indicator icon in panel */
+.globalprotect-indicator {
+    padding: 0 4px;
+    icon-size: 16px;
+}
+
+/* ============================================
+   Menu Structure
+   ============================================ */
+
+/* Base menu styling */
+.globalprotect-menu {
+    min-width: 250px;
+}
+
+/* Menu items - consistent spacing following HIG */
+.globalprotect-menu-item {
+    padding: 8px 12px;
+    spacing: 12px;
+}
+
+/* Menu item hover state */
+.globalprotect-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Menu separators - subtle dividers */
+.popup-separator-menu-item {
+    padding: 4px 0;
+}
+
+/* ============================================
+   Status Label
+   ============================================ */
+
+/* Base status label styling */
+.globalprotect-status-label {
+    font-weight: bold;
+    font-size: 10pt;
+    padding: 4px 8px;
+    color: #eeeeec;
+}
+
+/* Connected state - success green */
+.globalprotect-connected {
+    color: #8ff0a4;
+}
+
+/* Disconnected state - neutral/inactive */
+.globalprotect-disconnected {
+    color: #c0bfbc;
+}
+
+/* Transitioning state - warning orange */
+.globalprotect-transitioning {
+    color: #ffa348;
+}
+
+/* MFA waiting state - info blue */
+.globalprotect-mfa-waiting {
+    color: #62a0ea;
+}
+
+/* ============================================
+   Advanced Menu
+   ============================================ */
+
+/* Advanced submenu container */
+.globalprotect-advanced-menu {
+    padding-left: 12px;
+}
+
+/* Advanced menu items */
+.globalprotect-advanced-menu .popup-menu-item {
+    padding: 6px 12px;
+    font-size: 9pt;
+}
+
+/* ============================================
+   Buttons and Interactive Elements
+   ============================================ */
+
+/* Toggle button (Connect/Disconnect) */
+.globalprotect-toggle-button {
+    font-weight: bold;
+}
+
+/* Settings button */
+.globalprotect-settings-button {
+    padding: 8px 12px;
+}
+
+/* ============================================
+   Notifications (used by Main.notify)
+   ============================================ */
+
+/* Error notification styling */
+.globalprotect-error {
+    color: #f66151;
+}
+
+/* Success notification styling */
+.globalprotect-success {
+    color: #8ff0a4;
+}
+
+/* Warning notification styling */
+.globalprotect-warning {
+    color: #ffa348;
+}
+
+/* Info notification styling */
+.globalprotect-info {
+    color: #62a0ea;
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+/* Ensure sufficient contrast for readability */
+.globalprotect-status-label:focus {
+    outline: 2px solid #62a0ea;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .globalprotect-connected {
+        color: #33d17a;
+    }
+    
+    .globalprotect-disconnected {
+        color: #ffffff;
+    }
+    
+    .globalprotect-transitioning {
+        color: #ff7800;
+    }
+}

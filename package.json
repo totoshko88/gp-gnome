@@ -1,0 +1,16 @@
+{
+  "name": "gnome-globalprotect-extension",
+  "version": "1.0.0",
+  "description": "GNOME Shell Extension for GlobalProtect VPN",
+  "type": "module",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:properties",
+    "test:unit": "jasmine",
+    "test:properties": "node --experimental-vm-modules node_modules/jasmine/bin/jasmine.js --config=tests/properties/jasmine.json",
+    "test:all": "npm test"
+  },
+  "devDependencies": {
+    "fast-check": "^3.15.0",
+    "jasmine": "^5.1.0"
+  }
+}

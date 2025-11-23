@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.gp-gnome" 
+          path="/org/gnome/shell/extensions/gp-gnome/">
+    <key name="portal-address" type="s">
+      <default>'vpn.epam.com'</default>
+      <summary>VPN Portal Address</summary>
+      <description>
+        The address of the GlobalProtect VPN portal to connect to
+      </description>
+    </key>
+    <key name="poll-interval" type="i">
+      <default>5</default>
+      <range min="3" max="60"/>
+      <summary>Status Poll Interval</summary>
+      <description>
+        How often to check VPN connection status (in seconds)
+      </description>
+    </key>
+    <key name="username" type="s">
+      <default>''</default>
+      <summary>Username</summary>
+      <description>
+        Optional username for VPN connection. If empty, GlobalProtect will prompt for username.
+      </description>
+    </key>
+    <key name="ssl-only" type="b">
+      <default>false</default>
+      <summary>SSL Only Mode</summary>
+      <description>
+        Enable SSL only mode for VPN connection
+      </description>
+    </key>
+    <key name="log-level" type="s">
+      <default>'info'</default>
+      <summary>Log Level</summary>
+      <description>
+        GlobalProtect log level (error, warning, info, debug)
+      </description>
+    </key>
+  </schema>
+</schemalist>

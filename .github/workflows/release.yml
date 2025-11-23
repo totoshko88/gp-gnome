@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y glib-2.0 zip
+    
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Create distribution package
+      run: |
+        make dist
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: GNOME GlobalProtect Extension v${{ steps.get_version.outputs.VERSION }}
+        body: |
+          # GNOME GlobalProtect Extension v${{ steps.get_version.outputs.VERSION }}
+          
+          A GNOME Shell extension for managing GlobalProtect VPN connections.
+          
+          ## Installation
+          
+          Download the `globalprotect@username.github.io.zip` file and install using:
+          
+          ```bash
+          gnome-extensions install globalprotect@username.github.io.zip
+          gnome-extensions enable globalprotect@username.github.io
+          ```
+          
+          ## Requirements
+          
+          - GNOME Shell 49 or compatible
+          - GlobalProtect CLI installed
+          
+          ## Documentation
+          
+          See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) for full documentation.
+          
+          ## Changelog
+          
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+        draft: false
+        prerelease: false
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/globalprotect@username.github.io.zip
+        asset_name: globalprotect@username.github.io.zip
+        asset_content_type: application/zip
