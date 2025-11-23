@@ -44,7 +44,5 @@ local.conf
 .env
 .env.local
 
-# Screenshots (keep directory structure but ignore actual images during development)
-docs/screenshots/*.png
-docs/screenshots/*.jpg
-!docs/screenshots/.gitkeep
+# Screenshots directory (keep all images for documentation)
+# docs/screenshots/ - images are tracked for README
