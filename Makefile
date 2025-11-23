@@ -59,15 +59,15 @@ uninstall:
 dist: clean
 	@echo "Creating distribution package..."
 	@mkdir -p $(DIST_DIR)
-	@mkdir -p $(BUILD_DIR)/$(EXTENSION_UUID)
-	@mkdir -p $(BUILD_DIR)/$(EXTENSION_UUID)/schemas
-	@mkdir -p $(BUILD_DIR)/$(EXTENSION_UUID)/icons
-	@cp $(EXTENSION_FILES) $(BUILD_DIR)/$(EXTENSION_UUID)/
-	@cp LICENSE $(BUILD_DIR)/$(EXTENSION_UUID)/
-	@cp $(SCHEMA_FILES) $(BUILD_DIR)/$(EXTENSION_UUID)/schemas/
-	@cp $(ICON_FILES) $(BUILD_DIR)/$(EXTENSION_UUID)/icons/
-	@glib-compile-schemas $(BUILD_DIR)/$(EXTENSION_UUID)/schemas/
-	@cd $(BUILD_DIR) && zip -r ../$(DIST_DIR)/$(EXTENSION_UUID).zip $(EXTENSION_UUID)
+	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)/schemas
+	@mkdir -p $(BUILD_DIR)/icons
+	@cp $(EXTENSION_FILES) $(BUILD_DIR)/
+	@cp LICENSE $(BUILD_DIR)/
+	@cp $(SCHEMA_FILES) $(BUILD_DIR)/schemas/
+	@cp $(ICON_FILES) $(BUILD_DIR)/icons/
+	@glib-compile-schemas $(BUILD_DIR)/schemas/
+	@cd $(BUILD_DIR) && zip -r ../$(DIST_DIR)/$(EXTENSION_UUID).zip .
 	@echo "Distribution package created: $(DIST_DIR)/$(EXTENSION_UUID).zip"
 
 package: dist
