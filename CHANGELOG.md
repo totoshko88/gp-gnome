@@ -13,6 +13,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.0] - 2025-01-23
+
+### Added
+- ESLint configuration for code quality and consistency
+- Trademark disclaimer in README.md and metadata.json
+- Clipboard usage declaration in metadata.json
+- Comprehensive compliance report (REVIEW_COMPLIANCE.md)
+- Build release instructions (BUILD_RELEASE.md)
+
+### Improved
+- Full compliance with GNOME Shell Extensions Review Guidelines
+- Enhanced documentation for contributors
+- Code quality standards with linting rules
+
+### Changed
+- Updated metadata.json description with trademark notice
+- Updated CONTRIBUTING.md with ESLint instructions
+
 ## [1.2.1] - 2025-11-23
 
 ### Improved
