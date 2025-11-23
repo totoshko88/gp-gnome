@@ -47,29 +47,39 @@ Designed for **GlobalProtect CLI** (also known as **PanGPLinux**) - the official
 - 📋 **Copy buttons** in all information dialogs
 - 🎯 **Interactive dialogs** for all settings
 
-## Screenshots
+## 📸 Screenshots
 
-### System Tray Indicator
+### Disconnected State
 ![Disconnected State](docs/screenshots/disconnected.png)
-*Extension icon when VPN is disconnected*
+*Extension icon in system tray when VPN is disconnected*
 
-### Connection Menu
+### Main Menu
 ![Connection Menu](docs/screenshots/menu.png)
-*Main menu showing connection status and options*
+*Main menu showing connection status, gateway selection, and all available operations*
 
 ### Connected State
 ![Connected State](docs/screenshots/connected.png)
-*Extension showing active VPN connection with details*
+*Extension showing active VPN connection with gateway and IP information*
 
-### Settings Window
+### Settings Dialog
 ![Settings](docs/screenshots/settings.png)
-*Configuration interface for portal address*
+*Comprehensive settings dialog with portal, username, SSL mode, log level, and certificate import*
 
 ### Advanced Operations
 ![Advanced Menu](docs/screenshots/advanced.png)
-*Advanced operations submenu*
+*Advanced operations: Rediscover Network, Resubmit HIP, Collect Logs, Report Issue*
 
-> **Note:** Screenshots show the extension running on GNOME Shell 49. Actual screenshots should be added to the `docs/screenshots/` directory.
+### Show Information
+![Show Menu](docs/screenshots/show.png)
+*Show menu with Host State, Errors, Notifications, Help, and Version information*
+
+### Host State (HIP)
+![Host State](docs/screenshots/hip.png)
+*Detailed Host Information Profile with scrollable view and copy button*
+
+### About Dialog
+![About](docs/screenshots/about.png)
+*About dialog showing extension version, features, and contact information*
 
 ## 📋 Requirements
 
@@ -78,120 +88,159 @@ Designed for **GlobalProtect CLI** (also known as **PanGPLinux**) - the official
   - Usually located at `/usr/bin/globalprotect` or `/opt/paloaltonetworks/globalprotect/globalprotect`
 - **VPN Access**: Valid GlobalProtect VPN portal credentials
 
-## Installation
+## 📦 Installation
 
-### Quick Install (Recommended)
+### From GitHub Release (Recommended)
 
-1. Clone or download this repository
-2. Run the installation script:
+1. Download the latest release:
 ```bash
-chmod +x install.sh
-./install.sh
+wget https://github.com/totoshko88/gp-gnome/releases/download/v1.2.1/gp-gnome@totoshko88.github.io.zip
 ```
 
-3. Restart GNOME Shell:
-   - On X11: Press `Alt+F2`, type `r`, press Enter
-   - On Wayland: Log out and log back in
-
-### Using Make
-
+2. Install the extension:
 ```bash
-# Install the extension
-make install
-
-# Enable the extension
-gnome-extensions enable globalprotect@username.github.io
-
-# Restart GNOME Shell (X11: Alt+F2, type 'r')
+gnome-extensions install gp-gnome@totoshko88.github.io.zip --force
 ```
 
-### Manual Installation
-
-1. Clone or download this repository
-2. Copy the extension to your GNOME extensions directory:
+3. Enable the extension:
 ```bash
-cp -r . ~/.local/share/gnome-shell/extensions/globalprotect@username.github.io/
-```
-
-3. Compile the GSettings schema:
-```bash
-cd ~/.local/share/gnome-shell/extensions/globalprotect@username.github.io/
-glib-compile-schemas schemas/
+gnome-extensions enable gp-gnome@totoshko88.github.io
 ```
 
 4. Restart GNOME Shell:
-   - On X11: Press `Alt+F2`, type `r`, press Enter
-   - On Wayland: Log out and log back in
+   - **Wayland**: Log out and log back in
+   - **X11**: Press `Alt+F2`, type `r`, press Enter
 
-5. Enable the extension:
+### From Source
+
 ```bash
-gnome-extensions enable globalprotect@username.github.io
+# Clone the repository
+git clone https://github.com/totoshko88/gp-gnome.git
+cd gp-gnome
+
+# Install using Make
+make install
+
+# Enable the extension
+gnome-extensions enable gp-gnome@totoshko88.github.io
+
+# Restart GNOME Shell
+```
+
+### Quick Install Script
+
+```bash
+# Clone and install
+git clone https://github.com/totoshko88/gp-gnome.git
+cd gp-gnome
+chmod +x install.sh
+./install.sh
 ```
 
 ### Uninstallation
 
 ```bash
-# Using the uninstall script
-chmod +x uninstall.sh
+# Using uninstall script
 ./uninstall.sh
 
 # Or using Make
 make uninstall
+
+# Or using gnome-extensions
+gnome-extensions uninstall gp-gnome@totoshko88.github.io
 ```
 
-## Usage
+## 🚀 Usage
 
-### Basic Operations
+### First Time Setup
 
-1. **Connect to VPN:**
-   - Click the GlobalProtect icon in the system tray
-   - Click "Connect"
-   - Complete MFA authentication in the browser if prompted
-   - Wait for the connection to establish
+1. Click the gp-gnome icon in the system tray
+2. Click **Settings**
+3. Configure:
+   - **Portal Address**: Your VPN portal (e.g., `vpn.example.com`)
+   - **Poll Interval**: Status check frequency (default: 5 seconds)
+   - **Username** (optional): For automatic authentication
+   - **SSL Only Mode**: Force SSL-only connections
+   - **Log Level**: Error, Warning, Info, or Debug
+4. Click **Save**
 
-2. **Disconnect from VPN:**
-   - Click the GlobalProtect icon
-   - Click "Disconnect"
+### Connecting to VPN
 
-3. **View Connection Status:**
-   - The icon in the system tray shows the current connection state:
-     - 🔴 Red/Off: Disconnected
-     - 🟡 Yellow/Connecting: Connecting or disconnecting
-     - 🟢 Green/On: Connected
-     - ⚠️ Error: Connection error
-   - Click the icon to see detailed connection information
+1. Click the gp-gnome icon
+2. Click **Connect**
+3. Complete MFA authentication in browser if prompted
+4. Wait for connection to establish
+5. Icon will change to show connected state
 
-### Configuration
+### Disconnecting from VPN
 
-1. Click the GlobalProtect icon
-2. Click "Settings"
-3. Enter your VPN portal address (e.g., `vpn.epam.com`)
-4. The portal address is validated automatically
-5. Close the settings window to save
+1. Click the gp-gnome icon
+2. Click **Disconnect**
+3. Wait for disconnection to complete (~1-2 seconds)
+
+### Connection Status Icons
+
+The system tray icon shows current state:
+- 🔴 **Off** (Red): Disconnected
+- 🟡 **Connecting** (Yellow): Connecting or disconnecting
+- 🟢 **On** (Green): Connected
+- ⚠️ **Error** (Orange): Connection error
+
+### Gateway Selection
+
+1. Click the gp-gnome icon
+2. Click **Select Gateway**
+3. Choose from available gateways
+4. Extension will disconnect and reconnect to selected gateway
 
 ### Advanced Operations
 
-Click the GlobalProtect icon and select "Advanced" to access:
+Access via **Advanced** menu:
+- **Rediscover Network**: Refresh network configuration
+- **Resubmit HIP**: Resubmit Host Information Profile
+- **Collect Logs**: Gather diagnostic logs (opens folder)
+- **Report Issue**: Generate diagnostic report
 
-- **Rediscover Network:** Refresh network configuration
-- **Resubmit HIP:** Resubmit Host Information Profile
-- **Collect Logs:** Collect GlobalProtect logs for troubleshooting
+### Information Display
 
-## Configuration
+Access via **Show** menu:
+- **Host State**: View HIP information
+- **Errors**: View error messages
+- **Notifications**: View GlobalProtect notifications
+- **Help**: Access GlobalProtect help
+- **Version**: About dialog with extension info
 
-The extension stores settings in GSettings:
+## ⚙️ Configuration
 
-- **Portal Address:** The VPN portal to connect to (default: `vpn.epam.com`)
-- **Poll Interval:** How often to check VPN status in seconds (default: 5)
+### Settings via UI
 
-You can also configure these using `gsettings`:
+All settings are accessible through the **Settings** dialog:
+- Portal Address
+- Poll Interval (3-60 seconds)
+- Username (optional)
+- SSL Only Mode
+- Log Level (Error/Warning/Info/Debug)
+- Certificate Import
+
+### Settings via Command Line
+
+You can also configure using `gsettings`:
 
 ```bash
 # Set portal address
-gsettings set org.gnome.shell.extensions.globalprotect portal-address "vpn.example.com"
+gsettings set org.gnome.shell.extensions.gp-gnome portal-address "vpn.example.com"
 
 # Set poll interval (in seconds)
-gsettings set org.gnome.shell.extensions.globalprotect poll-interval 10
+gsettings set org.gnome.shell.extensions.gp-gnome poll-interval 10
+
+# Set username
+gsettings set org.gnome.shell.extensions.gp-gnome username "your-username"
+
+# Enable SSL only mode
+gsettings set org.gnome.shell.extensions.gp-gnome ssl-only true
+
+# Set log level
+gsettings set org.gnome.shell.extensions.gp-gnome log-level "debug"
 ```
 
 ## Troubleshooting
@@ -200,18 +249,17 @@ gsettings set org.gnome.shell.extensions.globalprotect poll-interval 10
 
 1. Check if the extension is enabled:
 ```bash
-gnome-extensions list --enabled | grep globalprotect
+gnome-extensions list --enabled | grep gp-gnome
 ```
 
 2. Check for errors in the logs:
 ```bash
-journalctl -f -o cat /usr/bin/gnome-shell | grep -i globalprotect
+journalctl -f -o cat /usr/bin/gnome-shell | grep -i gp-gnome
 ```
 
-3. Restart GNOME Shell (X11 only):
-```bash
-# Press Alt+F2, type 'r', press Enter
-```
+3. Restart GNOME Shell:
+   - **Wayland**: Log out and log back in
+   - **X11**: Press `Alt+F2`, type `r`, press Enter
 
 ### Connection Issues
 
@@ -235,11 +283,18 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep -i error
 
 1. Recompile the GSettings schema:
 ```bash
-cd ~/.local/share/gnome-shell/extensions/globalprotect@username.github.io/
+cd ~/.local/share/gnome-shell/extensions/gp-gnome@totoshko88.github.io/
 glib-compile-schemas schemas/
 ```
 
 2. Restart GNOME Shell
+
+### MFA Authentication Issues
+
+1. Ensure your browser is set as default
+2. Check that browser can access the portal
+3. Complete authentication within timeout period
+4. Check logs for specific error messages
 
 ## Development
 
@@ -264,7 +319,7 @@ bash tests/test-cli-integration.sh
 ### Project Structure
 
 ```
-globalprotect@username.github.io/
+gp-gnome@totoshko88.github.io/
 ├── extension.js          # Main extension class
 ├── prefs.js             # Preferences UI
 ├── indicator.js         # System tray indicator
@@ -273,17 +328,22 @@ globalprotect@username.github.io/
 ├── errorHandler.js      # Error handling utility
 ├── metadata.json        # Extension metadata
 ├── stylesheet.css       # UI styling
+├── LICENSE              # GPL-3.0-or-later
 ├── schemas/             # GSettings schema
-│   └── org.gnome.shell.extensions.globalprotect.gschema.xml
-├── icons/               # Custom icons
-│   ├── on.png          # Connected state
-│   ├── off.png         # Disconnected state
-│   ├── connecting.png  # Transitioning state
-│   └── error.png       # Error state
-└── tests/              # Test suites
-    ├── run-property-tests.js
-    ├── run-unit-tests.js
-    └── validate-review-guidelines.sh
+│   └── org.gnome.shell.extensions.gp-gnome.gschema.xml
+├── icons/               # Custom icons (4 states)
+│   ├── on.png          # Connected
+│   ├── off.png         # Disconnected
+│   ├── connecting.png  # Transitioning
+│   └── error.png       # Error
+├── tests/              # Test suites
+│   ├── run-property-tests.js
+│   ├── run-unit-tests.js
+│   ├── test-*.sh       # Feature tests
+│   └── validate-review-guidelines.sh
+└── docs/               # Documentation
+    ├── screenshots/    # UI screenshots
+    └── development/    # Development notes
 ```
 
 ### Architecture
@@ -313,20 +373,14 @@ The extension implements several security measures:
 
 ```bash
 # Create distribution package
-make dist
+make package
 
-# Package will be created at: dist/globalprotect@username.github.io.zip
+# Package will be created at: dist/gp-gnome@totoshko88.github.io.zip
 ```
 
 ### Submitting to extensions.gnome.org
 
-1. Create an account on https://extensions.gnome.org
-2. Upload the distribution package
-3. Fill in extension information
-4. Add screenshots
-5. Submit for review
-
-See [DISTRIBUTION.md](DISTRIBUTION.md) for detailed instructions.
+See [DISTRIBUTION.md](DISTRIBUTION.md) for detailed submission instructions.
 
 ## Contributing
 
@@ -354,15 +408,47 @@ Developed for GNOME Shell 49 with GlobalProtect VPN CLI integration.
 
 For issues, questions, or feature requests, please open an issue on the GitHub repository.
 
-## Changelog
+## 📝 Changelog
 
-### Version 1.0.0
-- Initial release
-- Basic connect/disconnect functionality
-- MFA authentication support
-- Status monitoring
-- Advanced operations (rediscover network, resubmit HIP, collect logs)
-- Custom icons for connection states
-- Settings UI for portal configuration
-- Comprehensive error handling
-- Property-based and unit test suites
+### Version 1.2.1 (Current)
+- **Rebranding**: Extension renamed to gp-gnome
+- **Interactive Certificate Import**: Dialog with path input and validation
+- **SSL Only Mode**: Force SSL-only connections
+- **Log Level Configuration**: Error, Warning, Info, Debug levels
+- **Username Support**: Optional username for automatic authentication
+- **Improved Disconnect**: Multiple status update attempts
+- **Enhanced HIP Resubmission**: Retry logic for better reliability
+- **Report Issue**: Generate diagnostic reports
+- **SEO Optimized**: Description includes GlobalProtect CLI and PanGPLinux keywords
+- **GPL-3.0 License**: Proper licensing with headers in all files
+
+See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+
+## 🤝 Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 📄 License
+
+GPL-3.0-or-later - see [LICENSE](LICENSE) file.
+
+Copyright (C) 2025 Anton Isaiev <totoshko88@gmail.com>
+
+## 👤 Author
+
+**Anton Isaiev**
+- Email: totoshko88@gmail.com
+- GitHub: [@totoshko88](https://github.com/totoshko88)
+- Repository: [gp-gnome](https://github.com/totoshko88/gp-gnome)
+
+## 🙏 Acknowledgments
+
+- Designed for GlobalProtect CLI (PanGPLinux) - Palo Alto Networks VPN client for Linux
+- Built for GNOME Shell 45-49
+- Tested on Ubuntu 24.04 with GNOME Shell 49
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/totoshko88/gp-gnome/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/totoshko88/gp-gnome/discussions)
+- **Email**: totoshko88@gmail.com
