@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--49-blue.svg)](https://www.gnome.org/)
-[![Version](https://img.shields.io/badge/version-1.3.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.1-green.svg)](CHANGELOG.md)
 
 **gp-gnome** is a GNOME Shell extension for GlobalProtect VPN CLI (PanGPLinux) integration. Provides complete VPN management with native GNOME integration, comprehensive functionality, and intelligent handling of known CLI issues.
 
@@ -96,7 +96,7 @@ Designed for **GlobalProtect CLI** (also known as **PanGPLinux**) - the official
 
 1. Download the latest release:
 ```bash
-wget https://github.com/totoshko88/gp-gnome/releases/download/v1.2.1/gp-gnome@totoshko88.github.io.zip
+wget https://github.com/totoshko88/gp-gnome/releases/download/v1.3.1/gp-gnome@totoshko88.github.io.zip
 ```
 
 2. Install the extension:
@@ -322,26 +322,33 @@ bash tests/test-cli-integration.sh
 
 ```
 gp-gnome@totoshko88.github.io/
-├── extension.js          # Main extension class
-├── prefs.js             # Preferences UI
-├── indicator.js         # System tray indicator
-├── gpClient.js          # GlobalProtect CLI wrapper
-├── statusMonitor.js     # VPN status monitoring
-├── errorHandler.js      # Error handling utility
-├── metadata.json        # Extension metadata
+├── extension.js          # Main extension class (lifecycle management)
+├── prefs.js             # Preferences UI (GTK4/Adwaita)
+├── indicator.js         # System tray indicator (UI component)
+├── gpClient.js          # GlobalProtect CLI wrapper (async operations)
+├── statusMonitor.js     # VPN status monitoring (polling)
+├── errorHandler.js      # Error handling utility (sanitization)
+├── metadata.json        # Extension metadata (no license fields)
 ├── stylesheet.css       # UI styling
 ├── LICENSE              # GPL-3.0-or-later
+├── .eslintrc.json       # ESLint configuration
+├── package.json         # npm dependencies (testing)
+├── Makefile             # Build automation
+├── install.sh           # Quick installation script
+├── uninstall.sh         # Uninstallation script
 ├── schemas/             # GSettings schema
 │   └── org.gnome.shell.extensions.gp-gnome.gschema.xml
-├── icons/               # Custom icons (4 states)
-│   ├── on.png          # Connected
-│   ├── off.png         # Disconnected
-│   ├── connecting.png  # Transitioning
-│   └── error.png       # Error
+├── icons/               # Custom SVG icons (scalable)
+│   ├── on.svg          # Connected state
+│   ├── off.svg         # Disconnected state
+│   ├── connecting.svg  # Transitioning state
+│   └── error.svg       # Error state
 ├── tests/              # Test suites
-│   ├── run-property-tests.js
-│   ├── run-unit-tests.js
-│   ├── test-*.sh       # Feature tests
+│   ├── run-property-tests.js      # Property-based tests
+│   ├── run-unit-tests.js          # Unit tests
+│   ├── properties/                # fast-check tests
+│   ├── mocks/                     # GNOME API mocks
+│   ├── test-*.sh                  # Integration tests
 │   └── validate-review-guidelines.sh
 └── docs/               # Documentation
     ├── screenshots/    # UI screenshots
@@ -350,24 +357,34 @@ gp-gnome@totoshko88.github.io/
 
 ### Architecture
 
-The extension follows a modular architecture:
+The extension follows a modular, separation-of-concerns architecture:
 
-- **Extension:** Main lifecycle management (enable/disable)
-- **GlobalProtectClient:** Async wrapper for GlobalProtect CLI commands
-- **StatusMonitor:** Periodic polling of VPN connection status
-- **GlobalProtectIndicator:** UI component in system tray
-- **ErrorHandler:** Centralized error handling with sanitization
+- **Extension (extension.js):** Lifecycle management (enable/disable), proper cleanup order
+- **GlobalProtectClient (gpClient.js):** Async CLI wrapper with Gio.Cancellable support
+- **StatusMonitor (statusMonitor.js):** Periodic status polling with configurable interval
+- **GlobalProtectIndicator (indicator.js):** UI component with race condition prevention
+- **ErrorHandler (errorHandler.js):** Centralized error handling with data sanitization
 
-All operations are asynchronous to prevent blocking the GNOME Shell UI.
+**Key Features:**
+- All operations are asynchronous (no UI blocking)
+- Proper resource cleanup (timeouts, signals, subprocess)
+- Cancellable operations (can be stopped on disable)
+- Input validation on all public methods
+- Race condition prevention with operation locks
+- Icon stability during non-connection operations
 
-## Security
+## 🔒 Security
 
-The extension implements several security measures:
+The extension implements comprehensive security measures:
 
-- **Command Injection Prevention:** All CLI commands use array arguments, not shell strings
-- **Sensitive Data Sanitization:** Passwords, tokens, and cookies are removed from logs
+- **Command Injection Prevention:** All CLI commands use array arguments (Gio.Subprocess), not shell strings
+- **Sensitive Data Sanitization:** Passwords, tokens, cookies, and API keys removed from logs
+- **Input Validation:** Type checking and validation on all user inputs
 - **Async Operations:** No blocking operations that could freeze the UI
-- **Proper Resource Cleanup:** All resources are cleaned up on disable
+- **Proper Resource Cleanup:** All resources (timeouts, signals, subprocess) cleaned up on disable
+- **Cancellable Operations:** All subprocess operations can be cancelled (Gio.Cancellable)
+- **Auto-disconnect on Logout:** VPN automatically disconnects when user logs out
+- **No Telemetry:** No user tracking or data collection
 
 ## Distribution
 
@@ -412,19 +429,38 @@ For issues, questions, or feature requests, please open an issue on the GitHub r
 
 ## 📝 Changelog
 
-### Version 1.2.1 (Current)
-- **Rebranding**: Extension renamed to gp-gnome
-- **Interactive Certificate Import**: Dialog with path input and validation
-- **SSL Only Mode**: Force SSL-only connections
-- **Log Level Configuration**: Error, Warning, Info, Debug levels
-- **Username Support**: Optional username for automatic authentication
-- **Improved Disconnect**: Multiple status update attempts
-- **Enhanced HIP Resubmission**: Retry logic for better reliability
-- **Report Issue**: Generate diagnostic reports
-- **SEO Optimized**: Description includes GlobalProtect CLI and PanGPLinux keywords
-- **GPL-3.0 License**: Proper licensing with headers in all files
+### Version 1.3.1 (Current)
+- **Review Compliance**: All extensions.gnome.org review issues addressed
+- **Logging**: Replaced deprecated log() with console.*, minimal logging
+- **SVG Icons**: Converted all icons from PNG to SVG for better scaling
+- **Timeouts**: Proper tracking and cleanup in all destroy() methods
+- **Cancellable**: Gio.Cancellable support for all subprocess operations
+- **Input Validation**: Type checking on all method parameters
+- **Race Conditions**: Operation locks prevent concurrent operations
+- **Icon Stability**: Fixed flickering during non-connection operations
+- **Code Quality**: Constants, better error handling, improved cleanup order
+- **Memory Management**: No leaks, proper resource cleanup
 
 See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+
+## 🏆 Code Quality
+
+This extension follows GNOME Shell best practices and has been thoroughly reviewed:
+
+- ✅ **100% Review Compliance** - All extensions.gnome.org guidelines met
+- ✅ **Modern JavaScript** - ES6+ features, async/await, proper error handling
+- ✅ **Memory Management** - Proper cleanup, no leaks, cancellable operations
+- ✅ **Resource Tracking** - All timeouts and signals properly managed
+- ✅ **Input Validation** - Type checking on all public methods
+- ✅ **Error Handling** - Comprehensive error handling with user-friendly messages
+- ✅ **Testing** - Unit tests and property-based tests included
+- ✅ **Documentation** - Inline comments and comprehensive docs
+
+**Architecture**:
+- Modular design with clear separation of concerns
+- Proper lifecycle management (enable/disable)
+- Race condition prevention
+- Robust cancellation support
 
 ## 🤝 Contributing
 

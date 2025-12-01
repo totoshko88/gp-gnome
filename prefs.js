@@ -64,9 +64,8 @@ function validatePortalAddress(address) {
 
 export default class GlobalProtectPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
-        try {
-            // Create preferences page
-            const page = new Adw.PreferencesPage();
+        // Create preferences page
+        const page = new Adw.PreferencesPage();
             
             // Create about group
             const aboutGroup = new Adw.PreferencesGroup({
@@ -135,25 +134,21 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
         
         // Connect to text changes for validation
         portalRow.connect('changed', (widget) => {
-            try {
-                const address = widget.text;
-                const valid = validatePortalAddress(address);
-                
-                if (valid) {
-                    // Valid address - save to settings
-                    settings.set_string('portal-address', address);
-                    portalRow.remove_css_class('error');
-                    validationLabel.visible = false;
-                    isValid = true;
-                } else {
-                    // Invalid address - show error
-                    portalRow.add_css_class('error');
-                    validationLabel.label = 'Invalid portal address. Enter a valid domain name or IP address.';
-                    validationLabel.visible = true;
-                    isValid = false;
-                }
-            } catch (e) {
-                ErrorHandler.handle(e, 'Failed to validate portal address', {notify: false, log: true});
+            const address = widget.text;
+            const valid = validatePortalAddress(address);
+            
+            if (valid) {
+                // Valid address - save to settings
+                settings.set_string('portal-address', address);
+                portalRow.remove_css_class('error');
+                validationLabel.visible = false;
+                isValid = true;
+            } else {
+                // Invalid address - show error
+                portalRow.add_css_class('error');
+                validationLabel.label = 'Invalid portal address. Enter a valid domain name or IP address.';
+                validationLabel.visible = true;
+                isValid = false;
             }
         });
         
@@ -181,8 +176,5 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
         
         // Add page to window
         window.add(page);
-        } catch (e) {
-            ErrorHandler.handle(e, 'Failed to create preferences window', {notify: true, log: true});
-        }
     }
 }

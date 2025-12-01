@@ -49,19 +49,14 @@ export default class GlobalProtectExtension extends Extension {
      */
     enable() {
         try {
-            log('gp-gnome: enable() called');
-            
             // Load GSettings
             this._settings = this.getSettings();
-            log('gp-gnome: settings loaded');
             
             // Create GlobalProtectClient instance
             this._gpClient = new GlobalProtectClient(this._settings);
-            log('gp-gnome: client created');
             
             // Create StatusMonitor instance
             this._statusMonitor = new StatusMonitor(this._gpClient, this._settings);
-            log('gp-gnome: status monitor created');
             
             // Create GlobalProtectIndicator instance
             this._indicator = new GlobalProtectIndicator(
@@ -70,20 +65,17 @@ export default class GlobalProtectExtension extends Extension {
                 this._settings,
                 this.path
             );
-            log('gp-gnome: indicator created');
             
             // Add indicator to panel status area
             Main.panel.addToStatusArea(this.uuid, this._indicator);
-            log('gp-gnome: indicator added to panel');
             
             // Start status monitoring
             this._statusMonitor.start();
-            log('gp-gnome: status monitoring started');
             
             // Connect to session manager for logout detection
             this._connectToSessionManager();
         } catch (error) {
-            logError(error, 'gp-gnome: Failed to enable');
+            console.error('gp-gnome: Failed to enable', error);
         }
     }
 
@@ -98,19 +90,13 @@ export default class GlobalProtectExtension extends Extension {
             // Listen for session mode changes (logout, lock, etc.)
             this._sessionModeChangedId = Main.sessionMode.connect('updated', () => {
                 // Check if session is ending (logout)
-                if (Main.sessionMode.isLocked) {
-                    // Session is locked - do NOT disconnect
-                    log('gp-gnome: Session locked, keeping VPN connected');
-                } else if (!Main.sessionMode.hasOverview) {
+                if (!Main.sessionMode.isLocked && !Main.sessionMode.hasOverview) {
                     // Session is ending (logout) - disconnect VPN
-                    log('gp-gnome: Session ending, disconnecting VPN');
                     this._disconnectOnLogout();
                 }
             });
-            
-            log('gp-gnome: Connected to session manager');
         } catch (error) {
-            logError(error, 'gp-gnome: Failed to connect to session manager');
+            console.error('gp-gnome: Failed to connect to session manager', error);
         }
     }
 
@@ -120,39 +106,47 @@ export default class GlobalProtectExtension extends Extension {
      */
     async _disconnectOnLogout() {
         try {
-            log('gp-gnome: Disconnecting VPN on logout');
             await this._gpClient.disconnect();
-            log('gp-gnome: VPN disconnected successfully');
         } catch (error) {
-            logError(error, 'gp-gnome: Failed to disconnect on logout');
+            console.error('gp-gnome: Failed to disconnect on logout', error);
         }
     }
 
     /**
      * Disable the extension
      * Cleans up all resources and removes indicator from panel
+     * Resources are cleaned up in reverse order of creation
      */
     disable() {
-        // Disconnect session manager signal
-        if (this._sessionModeChangedId) {
-            Main.sessionMode.disconnect(this._sessionModeChangedId);
-            this._sessionModeChangedId = null;
-        }
-        
-        // Stop status monitor
+        // 1. Stop monitoring first (prevents new operations)
         if (this._statusMonitor) {
             this._statusMonitor.stop();
             this._statusMonitor = null;
         }
         
-        // Destroy indicator (this also removes it from panel)
+        // 2. Destroy UI (might trigger operations)
         if (this._indicator) {
             this._indicator.destroy();
             this._indicator = null;
         }
         
-        // Clear all references
-        this._gpClient = null;
+        // 3. Cancel ongoing operations
+        if (this._gpClient) {
+            this._gpClient.destroy();
+            this._gpClient = null;
+        }
+        
+        // 4. Disconnect signals (no more events)
+        if (this._sessionModeChangedId) {
+            try {
+                Main.sessionMode.disconnect(this._sessionModeChangedId);
+            } catch (e) {
+                console.error('Failed to disconnect session signal:', e);
+            }
+            this._sessionModeChangedId = null;
+        }
+        
+        // 5. Clear settings last
         this._settings = null;
     }
 }

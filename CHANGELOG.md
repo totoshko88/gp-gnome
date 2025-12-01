@@ -13,6 +13,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.1] - 2025-12-01
+
+### Fixed
+- **Review compliance**: All issues from extensions.gnome.org review addressed
+- **Logging**: Replaced deprecated `log()` with `console.*` and removed excessive logging
+- **Timeouts**: Proper timeout tracking and cleanup in all `destroy()` methods
+- **Subprocess**: Implemented `Gio.Cancellable` for all subprocess operations with signal handling
+- **Memory leaks**: All timeouts and subprocess operations properly cleaned up on disable
+- **Race conditions**: Added operation lock to prevent concurrent connect/disconnect operations
+- **Icon flickering**: Fixed icon changing to disconnected during non-connection operations
+
+### Changed
+- **Icons**: Converted custom icons from PNG to SVG format for better scaling
+- **Code quality**: Removed unnecessary try-catch wrappers
+- **metadata.json**: Removed deprecated `license` and `license-url` fields
+- **Distribution**: Removed `gschemas.compiled` from repository (generated during install)
+- **Cleanup order**: Resources now cleaned up in reverse order of creation
+
+### Improved
+- **Cancellable handling**: Proper cancellation signal support in all async operations
+- **Input validation**: Added type checking for all method parameters
+- **Constants**: Replaced magic numbers with named constants
+- **Error handling**: Enhanced signal disconnection with validation
+- **Resource cleanup**: Improved cleanup order prevents edge cases
+- **UX**: Icon stays consistent during info operations (logs, errors, HIP, etc.)
+
 ## [1.3.0] - 2025-01-23
 
 ### Added

@@ -57,7 +57,7 @@ export class ErrorHandler {
         // Log error with sanitized message
         if (log) {
             const sanitizedMessage = this._sanitizeForLog(error.message || error.toString());
-            logError(error, `${context}: ${sanitizedMessage}`);
+            console.error(`${context}: ${sanitizedMessage}`, error);
         }
 
         // Show error notification to user using Main.notifyError()
@@ -68,11 +68,7 @@ export class ErrorHandler {
 
         // Execute UI callback if provided
         if (uiCallback && typeof uiCallback === 'function') {
-            try {
-                uiCallback(error, userMessage);
-            } catch (callbackError) {
-                logError(callbackError, 'Error in UI callback');
-            }
+            uiCallback(error, userMessage);
         }
     }
 

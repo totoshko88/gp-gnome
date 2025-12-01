@@ -8,7 +8,7 @@ DIST_DIR = dist
 # Extension files
 EXTENSION_FILES = extension.js prefs.js indicator.js gpClient.js statusMonitor.js errorHandler.js metadata.json stylesheet.css
 SCHEMA_FILES = schemas/org.gnome.shell.extensions.gp-gnome.gschema.xml
-ICON_FILES = icons/*.png
+ICON_FILES = icons/*.svg
 
 .PHONY: all install uninstall clean dist package test help
 
@@ -66,9 +66,9 @@ dist: clean
 	@cp LICENSE $(BUILD_DIR)/
 	@cp $(SCHEMA_FILES) $(BUILD_DIR)/schemas/
 	@cp $(ICON_FILES) $(BUILD_DIR)/icons/
-	@glib-compile-schemas $(BUILD_DIR)/schemas/
 	@cd $(BUILD_DIR) && zip -r ../$(DIST_DIR)/$(EXTENSION_UUID).zip .
 	@echo "Distribution package created: $(DIST_DIR)/$(EXTENSION_UUID).zip"
+	@echo "Note: gschemas.compiled will be generated during installation"
 
 package: dist
 

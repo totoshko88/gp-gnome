@@ -5,7 +5,5 @@
   "version": 1,
   "shell-version": ["45", "46", "47", "48", "49"],
   "url": "https://github.com/totoshko88/gp-gnome",
-  "settings-schema": "org.gnome.shell.extensions.gp-gnome",
-  "license": "GPL-3.0-or-later",
-  "license-url": "https://www.gnu.org/licenses/gpl-3.0.html"
+  "settings-schema": "org.gnome.shell.extensions.gp-gnome"
 }

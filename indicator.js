@@ -32,6 +32,13 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import {ErrorHandler} from './errorHandler.js';
 
+// Constants for delays and timeouts
+const STATUS_UPDATE_DELAY_MS = 300;
+const DISCONNECT_WAIT_MS = 500;
+const GATEWAY_SWITCH_DISCONNECT_WAIT_MS = 2000;
+const ERROR_ICON_RESET_DELAY_MS = 3000;
+const NOTIFICATION_MIN_INTERVAL_MS = 2000;
+
 /**
  * GlobalProtectIndicator - Panel indicator for GlobalProtect VPN
  * Displays VPN status in system tray and provides menu for VPN operations
@@ -50,14 +57,23 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         // Track signal connections for cleanup
         this._signalIds = [];
         
+        // Track timeouts for cleanup
+        this._timeoutIds = new Set();
+        
         // Current state tracking
         this._isConnecting = false;
         this._isDisconnecting = false;
         this._isMfaWaiting = false;
         
+        // Operation lock to prevent concurrent operations
+        this._operationInProgress = false;
+        
+        // Track if non-connection operation is in progress (logs, HIP, etc.)
+        this._nonConnectionOperationInProgress = false;
+        
         // Notification throttling to prevent excessive notifications
         this._lastNotificationTime = 0;
-        this._notificationMinInterval = 2000; // Minimum 2 seconds between notifications
+        this._notificationMinInterval = NOTIFICATION_MIN_INTERVAL_MS;
         
         // Cache for gateway list and connection details
         this._gatewayListCache = null;
@@ -69,8 +85,8 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             style_class: 'system-status-icon globalprotect-indicator'
         });
         
-        // Load custom icon for disconnected state
-        this._loadCustomIcon('off.png');
+        // Set initial icon for disconnected state
+        this._setIcon('off');
         
         this.add_child(this._icon);
         
@@ -90,6 +106,40 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             this._updateIcon(currentStatus);
             this._updateMenu(currentStatus);
         }
+    }
+
+    /**
+     * Delay helper using GLib.timeout_add with tracking
+     * @param {number} ms - Milliseconds to delay
+     * @returns {Promise<void>}
+     * @private
+     */
+    async _delay(ms) {
+        return new Promise(resolve => {
+            const timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
+                this._timeoutIds.delete(timeoutId);
+                resolve();
+                return GLib.SOURCE_REMOVE;
+            });
+            this._timeoutIds.add(timeoutId);
+        });
+    }
+
+    /**
+     * Add tracked timeout that will be cleaned up on destroy
+     * @param {Function} callback - Function to call
+     * @param {number} ms - Milliseconds to wait
+     * @returns {number} Timeout ID
+     * @private
+     */
+    _addTimeout(callback, ms) {
+        const timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
+            this._timeoutIds.delete(timeoutId);
+            callback();
+            return GLib.SOURCE_REMOVE;
+        });
+        this._timeoutIds.add(timeoutId);
+        return timeoutId;
     }
 
     /**
@@ -114,31 +164,26 @@ class GlobalProtectIndicator extends PanelMenu.Button {
     }
 
     /**
-     * Load custom icon from extension directory
-     * Custom icons are loaded from the icons/ directory:
-     * - on.png: Connected state
-     * - off.png: Disconnected state
-     * - connecting.png: Connecting/disconnecting/MFA waiting states
-     * - error.png: Error state
+     * Load custom SVG icon from extension directory
+     * Custom SVG icons are loaded from the icons/ directory:
+     * - on.svg: Connected state
+     * - off.svg: Disconnected state
+     * - connecting.svg: Connecting/disconnecting/MFA waiting states
+     * - error.svg: Error state
      * 
-     * @param {string} iconName - Icon filename (e.g., 'off.png')
+     * @param {string} iconName - Icon filename without extension (e.g., 'off')
      * @private
      */
-    _loadCustomIcon(iconName) {
-        try {
-            const iconPath = `${this._extensionPath}/icons/${iconName}`;
-            const file = Gio.File.new_for_path(iconPath);
-            
-            if (file.query_exists(null)) {
-                const gicon = Gio.FileIcon.new(file);
-                this._icon.set_gicon(gicon);
-            } else {
-                // Fallback to symbolic icon if custom icon not found
-                this._icon.icon_name = 'network-vpn-disconnected-symbolic';
-            }
-        } catch (e) {
-            ErrorHandler.handle(e, 'Failed to load custom icon', {notify: false, log: true});
-            // Fallback to symbolic icon on error
+    _setIcon(iconName) {
+        const iconPath = `${this._extensionPath}/icons/${iconName}.svg`;
+        const file = Gio.File.new_for_path(iconPath);
+        
+        if (file.query_exists(null)) {
+            const gicon = Gio.FileIcon.new(file);
+            this._icon.set_gicon(gicon);
+        } else {
+            // Fallback to symbolic icon if custom icon not found
+            console.error(`Icon not found: ${iconPath}`);
             this._icon.icon_name = 'network-vpn-disconnected-symbolic';
         }
     }
@@ -257,7 +302,13 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     _onStatusChanged(_monitor, status) {
-        this._updateIcon(status);
+        // Don't update icon during non-connection operations (logs, HIP, etc.)
+        // to prevent flickering when CLI temporarily reports wrong status
+        if (!this._nonConnectionOperationInProgress) {
+            this._updateIcon(status);
+        }
+        
+        // Always update menu text
         this._updateMenu(status);
         
         // Clear transitioning states when status changes to connected/disconnected
@@ -291,19 +342,19 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         
         if (isError) {
             // Error state - show error icon
-            iconName = 'error.png';
+            iconName = 'error';
         } else if (this._isConnecting || this._isDisconnecting || this._isMfaWaiting) {
             // Transitioning states - show connecting animation icon
-            iconName = 'connecting.png';
+            iconName = 'connecting';
         } else if (status && status.connected) {
             // Connected state - show on icon
-            iconName = 'on.png';
+            iconName = 'on';
         } else {
             // Disconnected state - show off icon
-            iconName = 'off.png';
+            iconName = 'off';
         }
         
-        this._loadCustomIcon(iconName);
+        this._setIcon(iconName);
     }
 
     /**
@@ -372,6 +423,12 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _onToggleConnection() {
+        // Prevent concurrent operations
+        if (this._operationInProgress) {
+            return;
+        }
+        
+        this._operationInProgress = true;
         const status = this._statusMonitor.getCurrentStatus();
         
         try {
@@ -384,12 +441,12 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 await this._gpClient.disconnect();
                 
                 // Wait a bit for disconnect to complete
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await this._delay(DISCONNECT_WAIT_MS);
                 
                 // Force multiple status updates to ensure UI reflects disconnected state
                 for (let i = 0; i < 3; i++) {
                     await this._statusMonitor.forceUpdate();
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await this._delay(STATUS_UPDATE_DELAY_MS);
                 }
                 
                 // Clear disconnecting state after status updates
@@ -472,12 +529,15 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                     // Show error icon
                     this._updateIcon(currentStatus, true);
                     
-                    // Reset to normal icon after 3 seconds
-                    setTimeout(() => {
+                    // Reset to normal icon after delay
+                    this._addTimeout(() => {
                         this._updateIcon(this._statusMonitor.getCurrentStatus(), false);
-                    }, 3000);
+                    }, ERROR_ICON_RESET_DELAY_MS);
                 }
             });
+        } finally {
+            // Always clear operation lock
+            this._operationInProgress = false;
         }
     }
 
@@ -556,6 +616,8 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _showHostState() {
+        this._nonConnectionOperationInProgress = true;
+        
         try {
             const hostState = await this._gpClient.getHostState();
             this._showInfoDialog('GlobalProtect Host State', hostState);
@@ -564,6 +626,10 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 notify: true,
                 log: true
             });
+        } finally {
+            this._nonConnectionOperationInProgress = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
         }
     }
 
@@ -574,6 +640,9 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _executeAdvancedCommand(commandName, displayName) {
+        // Mark that non-connection operation is in progress
+        this._nonConnectionOperationInProgress = true;
+        
         try {
             await this._gpClient[commandName]();
             this._showNotification('GlobalProtect', `${displayName} completed successfully`);
@@ -586,12 +655,17 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                     const currentStatus = this._statusMonitor.getCurrentStatus();
                     this._updateIcon(currentStatus, true);
                     
-                    // Reset to normal icon after 3 seconds
-                    setTimeout(() => {
+                    // Reset to normal icon after delay
+                    this._addTimeout(() => {
                         this._updateIcon(this._statusMonitor.getCurrentStatus(), false);
-                    }, 3000);
+                    }, ERROR_ICON_RESET_DELAY_MS);
                 }
             });
+        } finally {
+            // Clear flag and force icon update to correct state
+            this._nonConnectionOperationInProgress = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
         }
     }
 
@@ -600,8 +674,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     _changePortal() {
-        try {
-            const currentPortal = this._settings.get_string('portal-address');
+        const currentPortal = this._settings.get_string('portal-address');
             
             // Create modal dialog
             const dialog = new ModalDialog.ModalDialog();
@@ -678,10 +751,6 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Open dialog and focus input
             dialog.open();
             global.stage.set_key_focus(portalEntry);
-            
-        } catch (e) {
-            ErrorHandler.handle(e, 'Failed to show portal dialog', {notify: true, log: true});
-        }
     }
 
     /**
@@ -827,7 +896,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             if (currentStatus && currentStatus.connected) {
                 await this._gpClient.disconnect();
                 // Wait a bit for disconnect to complete
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await this._delay(GATEWAY_SWITCH_DISCONNECT_WAIT_MS);
             }
             
             // Connect directly to the selected gateway using --gateway flag
@@ -852,6 +921,9 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _collectLogsAndOpen() {
+        // Mark that non-connection operation is in progress
+        this._nonConnectionOperationInProgress = true;
+        
         try {
             // Collect logs first
             const result = await this._gpClient.collectLog();
@@ -887,6 +959,11 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             }
         } catch (e) {
             ErrorHandler.handle(e, 'Log Collection failed', {notify: true, log: true});
+        } finally {
+            // Clear flag and force icon update to correct state
+            this._nonConnectionOperationInProgress = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
         }
     }
 
@@ -895,12 +972,18 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _showHelp() {
+        this._nonConnectionOperationInProgress = true;
+        
         try {
             // Help command opens browser, so just execute it without showing dialog
             await this._gpClient.getHelp();
             // No need to show dialog - browser will open automatically
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to open help', {notify: true, log: true});
+        } finally {
+            this._nonConnectionOperationInProgress = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
         }
     }
 
@@ -1256,11 +1339,17 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _showErrors() {
+        this._nonConnectionOperationInProgress = true;
+        
         try {
             const errors = await this._gpClient.getErrors();
             this._showInfoDialog('GlobalProtect Errors', errors);
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to get errors', {notify: true, log: true});
+        } finally {
+            this._nonConnectionOperationInProgress = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
         }
     }
 
@@ -1269,11 +1358,17 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _showNotifications() {
+        this._nonConnectionOperationInProgress = true;
+        
         try {
             const notifications = await this._gpClient.getNotifications();
             this._showInfoDialog('GlobalProtect Notifications', notifications);
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to get notifications', {notify: true, log: true});
+        } finally {
+            this._nonConnectionOperationInProgress = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
         }
     }
 
@@ -1282,11 +1377,13 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _showAbout() {
+        this._nonConnectionOperationInProgress = true;
+        
         try {
             const version = await this._gpClient.getVersion();
             const content = `${version}\n\n` +
                 `gp-gnome - GNOME Shell Extension\n` +
-                `Extension version: 1.2.1\n\n` +
+                `Extension version: 1.3.1\n\n` +
                 `Description:\n` +
                 `GNOME Shell extension gp-gnome for GlobalProtect VPN CLI (PanGPLinux) integration.\n` +
                 `Provides complete VPN management with native GNOME integration,\n` +
@@ -1310,6 +1407,10 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             this._showInfoDialog('About gp-gnome', content);
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to get version', {notify: true, log: true});
+        } finally {
+            this._nonConnectionOperationInProgress = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
         }
     }
 
@@ -1454,10 +1555,24 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * Clean up resources
      */
     destroy() {
-        // Disconnect all signals
+        // Remove all timeouts
+        for (const timeoutId of this._timeoutIds) {
+            try {
+                GLib.source_remove(timeoutId);
+            } catch (e) {
+                console.error('Failed to remove timeout:', e);
+            }
+        }
+        this._timeoutIds.clear();
+        
+        // Disconnect all signals with validation
         this._signalIds.forEach(({ obj, id }) => {
-            if (obj && id) {
-                obj.disconnect(id);
+            try {
+                if (obj && typeof obj.disconnect === 'function' && id) {
+                    obj.disconnect(id);
+                }
+            } catch (e) {
+                console.error('Failed to disconnect signal:', e);
             }
         });
         this._signalIds = [];
