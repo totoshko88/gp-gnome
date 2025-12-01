@@ -164,8 +164,8 @@ echo "=== 5. Checking GSettings Schema ==="
 echo ""
 
 # Check schema file exists
-SCHEMA_FILE="schemas/org.gnome.shell.extensions.globalprotect.gschema.xml"
-if [ -f "$SCHEMA_FILE" ]; then
+SCHEMA_FILE=$(find schemas -name "*.gschema.xml" -type f | head -n 1)
+if [ -n "$SCHEMA_FILE" ] && [ -f "$SCHEMA_FILE" ]; then
     pass "GSettings schema file exists"
     
     # Check schema ID matches convention
