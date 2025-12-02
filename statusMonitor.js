@@ -45,6 +45,11 @@ export const StatusMonitor = GObject.registerClass({
         this._pollInterval = 5000; // Default 5 seconds in milliseconds
         this._isStopped = false; // Flag to prevent polling after stop
         
+        // Debounce counter for disconnect events
+        // Prevents false disconnects when CLI temporarily reports wrong status
+        this._disconnectDebounceCount = 0;
+        this._disconnectDebounceThreshold = 2; // Require 2 consecutive disconnected polls
+        
         // Read poll interval from settings if available
         if (this._settings) {
             this._pollInterval = this._settings.get_int('poll-interval') * 1000;
@@ -126,7 +131,7 @@ export const StatusMonitor = GObject.registerClass({
     }
 
     /**
-     * Check if status has changed
+     * Check if status has changed with debounce for disconnect
      * @param {Object} newStatus - New status object
      * @returns {boolean} True if status changed
      * @private
@@ -137,7 +142,29 @@ export const StatusMonitor = GObject.registerClass({
             return true;
         }
         
-        // Compare status objects
+        const wasConnected = this._currentStatus && this._currentStatus.connected;
+        const isConnected = newStatus && newStatus.connected;
+        
+        // If transitioning from connected to disconnected, apply debounce
+        if (wasConnected && !isConnected) {
+            this._disconnectDebounceCount++;
+            
+            // Only report disconnect after threshold consecutive polls
+            if (this._disconnectDebounceCount < this._disconnectDebounceThreshold) {
+                // Don't report change yet - might be temporary
+                return false;
+            }
+            // Threshold reached - report the disconnect
+            this._disconnectDebounceCount = 0;
+            return true;
+        }
+        
+        // Reset debounce counter if connected
+        if (isConnected) {
+            this._disconnectDebounceCount = 0;
+        }
+        
+        // Compare status objects for other changes
         return JSON.stringify(newStatus) !== JSON.stringify(this._currentStatus);
     }
 
