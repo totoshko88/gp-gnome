@@ -317,13 +317,18 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             this._isDisconnecting = false;
             this._isMfaWaiting = false;
             
+            // Clear connection details cache when status changes to force reload
+            if (status.connected) {
+                this._connectionDetailsCache = null;
+            }
+            
             // Load gateway list after connection is established
             if (status.connected && !this._gatewayListCache) {
                 this._loadGatewayList();
             }
         }
         
-        // Clear gateway cache when disconnected
+        // Clear caches when disconnected
         if (status && !status.connected) {
             this._gatewayListCache = null;
             this._connectionDetailsCache = null;
@@ -362,7 +367,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @param {Object} status - Status object
      * @private
      */
-    async _updateMenu(status) {
+    _updateMenu(status) {
         if (this._isMfaWaiting) {
             this._statusLabel.text = 'Waiting for authentication...';
             this._statusLabel.style_class = 'globalprotect-status-label globalprotect-mfa-waiting';
@@ -382,16 +387,38 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 statusText += ` to ${status.portal}`;
             }
             
-            // Get connection details and show gateway info
-            if (!this._connectionDetailsCache) {
-                try {
-                    this._connectionDetailsCache = await this._gpClient.getDetails();
-                } catch (e) {
-                    // Ignore errors, just don't cache
-                }
-            }
+            // Set initial text immediately
+            this._statusLabel.text = statusText;
+            this._statusLabel.style_class = 'globalprotect-status-label globalprotect-connected';
+            this._toggleItem.label.text = 'Disconnect';
             
-            if (this._connectionDetailsCache) {
+            // Get connection details asynchronously and update UI when ready
+            if (!this._connectionDetailsCache) {
+                this._gpClient.getDetails().then(details => {
+                    this._connectionDetailsCache = details;
+                    
+                    // Update status text with details
+                    let detailedText = statusText;
+                    if (details.gateway) {
+                        detailedText += `\nGateway: ${details.gateway}`;
+                    }
+                    if (details.vpnIp) {
+                        detailedText += `\nAssigned IP: ${details.vpnIp}`;
+                    }
+                    if (details.clientIp) {
+                        detailedText += `\nGateway IP: ${details.clientIp}`;
+                    }
+                    
+                    // Only update if still connected
+                    const currentStatus = this._statusMonitor.getCurrentStatus();
+                    if (currentStatus && currentStatus.connected) {
+                        this._statusLabel.text = detailedText;
+                    }
+                }).catch(e => {
+                    // Ignore errors, just don't show details
+                });
+            } else {
+                // Use cached details
                 const details = this._connectionDetailsCache;
                 if (details.gateway) {
                     statusText += `\nGateway: ${details.gateway}`;
@@ -402,11 +429,8 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 if (details.clientIp) {
                     statusText += `\nGateway IP: ${details.clientIp}`;
                 }
+                this._statusLabel.text = statusText;
             }
-            
-            this._statusLabel.text = statusText;
-            this._statusLabel.style_class = 'globalprotect-status-label globalprotect-connected';
-            this._toggleItem.label.text = 'Disconnect';
         } else {
             // Disconnected state
             this._statusLabel.text = 'Not connected';
