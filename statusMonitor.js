@@ -43,6 +43,7 @@ export const StatusMonitor = GObject.registerClass({
         this._timeoutId = null;
         this._currentStatus = null;
         this._pollInterval = 5000; // Default 5 seconds in milliseconds
+        this._isStopped = false; // Flag to prevent polling after stop
         
         // Read poll interval from settings if available
         if (this._settings) {
@@ -79,6 +80,8 @@ export const StatusMonitor = GObject.registerClass({
      * Cleans up the polling timeout
      */
     stop() {
+        this._isStopped = true;
+        
         if (this._timeoutId) {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = null;
@@ -98,8 +101,18 @@ export const StatusMonitor = GObject.registerClass({
      * @private
      */
     async _poll() {
+        // Don't poll if stopped
+        if (this._isStopped) {
+            return;
+        }
+        
         try {
             const status = await this._gpClient.getStatus();
+            
+            // Check again after async operation
+            if (this._isStopped) {
+                return;
+            }
             
             // Only emit signal if status actually changed
             if (this._hasStatusChanged(status)) {

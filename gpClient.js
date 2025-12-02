@@ -64,8 +64,8 @@ export class GlobalProtectClient {
             throw new Error('GlobalProtect CLI is not installed or not in PATH');
         }
 
-        // Check if already cancelled before starting
-        if (this._cancellable.is_cancelled()) {
+        // Check if already cancelled or destroyed before starting
+        if (!this._cancellable || this._cancellable.is_cancelled()) {
             throw new Error('Operation cancelled before execution');
         }
 
@@ -625,15 +625,21 @@ export class GlobalProtectClient {
      */
     destroy() {
         // Cancel all subprocess operations
-        this._cancellable.cancel();
+        if (this._cancellable && !this._cancellable.is_cancelled()) {
+            this._cancellable.cancel();
+        }
         
         // Remove all timeouts
         for (const timeoutId of this._timeoutIds) {
-            GLib.source_remove(timeoutId);
+            try {
+                GLib.source_remove(timeoutId);
+            } catch (e) {
+                // Ignore errors during cleanup
+            }
         }
         this._timeoutIds.clear();
         
-        // Create new cancellable for future use if needed
-        this._cancellable = new Gio.Cancellable();
+        // Don't create new cancellable - object is being destroyed
+        this._cancellable = null;
     }
 }
