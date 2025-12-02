@@ -80,30 +80,20 @@ export default class GlobalProtectExtension extends Extension {
     }
 
     /**
-     * Disconnect VPN synchronously
-     * Uses spawn_command_line_sync to ensure disconnect completes
-     * @private
-     */
-    _disconnectVpnSync() {
-        try {
-            // Use synchronous spawn to ensure disconnect completes
-            GLib.spawn_command_line_sync('globalprotect disconnect');
-            console.info('gp-gnome: VPN disconnected');
-        } catch (error) {
-            // Ignore errors - VPN might already be disconnected
-            console.info('gp-gnome: VPN disconnect attempted');
-        }
-    }
-
-    /**
      * Disable the extension
      * Cleans up all resources and removes indicator from panel
      * Resources are cleaned up in reverse order of creation
      */
     disable() {
-        // Disconnect VPN on disable (covers logout, lock screen, extension disable)
+        // Note: Auto-disconnect on logout is handled by spawning async process
+        // We don't wait for it to complete to avoid blocking Shell
         if (this._autoDisconnectOnLogout) {
-            this._disconnectVpnSync();
+            try {
+                // Spawn async disconnect - don't wait for completion
+                GLib.spawn_command_line_async('globalprotect disconnect');
+            } catch (e) {
+                // Ignore errors - VPN might already be disconnected
+            }
         }
         
         // 1. Disconnect session signals first
