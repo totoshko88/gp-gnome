@@ -80,6 +80,9 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         this._lastGatewayUpdate = 0;
         this._connectionDetailsCache = null;
         
+        // Track if indicator is being destroyed
+        this._isDestroyed = false;
+        
         // Create status icon
         this._icon = new St.Icon({
             style_class: 'system-status-icon globalprotect-indicator'
@@ -302,6 +305,11 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     _onStatusChanged(_monitor, status) {
+        // Ignore if destroyed
+        if (this._isDestroyed) {
+            return;
+        }
+        
         // Don't update icon during non-connection operations (logs, HIP, etc.)
         // to prevent flickering when CLI temporarily reports wrong status
         if (!this._nonConnectionOperationInProgress) {
@@ -393,8 +401,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             this._toggleItem.label.text = 'Disconnect';
             
             // Get connection details asynchronously and update UI when ready
-            if (!this._connectionDetailsCache) {
-                this._gpClient.getDetails().then(details => {
+            if (!this._connectionDetailsCache && this._gpClient && this._statusMonitor) {
+                // Use a timeout to prevent hanging
+                Promise.race([
+                    this._gpClient.getDetails(),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Timeout')), 3000)
+                    )
+                ]).then(details => {
                     console.info('gp-gnome: Got connection details:', JSON.stringify(details));
                     this._connectionDetailsCache = details;
                     
@@ -412,12 +426,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                     
                     console.info('gp-gnome: Updating status text to:', detailedText);
                     
-                    // Only update if still connected
-                    const currentStatus = this._statusMonitor.getCurrentStatus();
-                    if (currentStatus && currentStatus.connected) {
-                        this._statusLabel.text = detailedText;
-                    } else {
-                        console.info('gp-gnome: Not updating - disconnected');
+                    // Only update if still connected and components exist
+                    if (this._statusMonitor && this._statusLabel) {
+                        const currentStatus = this._statusMonitor.getCurrentStatus();
+                        if (currentStatus && currentStatus.connected) {
+                            this._statusLabel.text = detailedText;
+                        } else {
+                            console.info('gp-gnome: Not updating - disconnected');
+                        }
                     }
                 }).catch(e => {
                     console.error('gp-gnome: Failed to get connection details:', e.message);
@@ -1584,6 +1600,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * Clean up resources
      */
     destroy() {
+        // Mark as destroyed to prevent async operations
+        this._isDestroyed = true;
+        
+        // Clear references to prevent async callbacks
+        this._gpClient = null;
+        this._statusMonitor = null;
+        this._statusLabel = null;
+        
         // Remove all timeouts
         for (const timeoutId of this._timeoutIds) {
             try {
