@@ -948,6 +948,11 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         try {
             const currentStatus = this._statusMonitor.getCurrentStatus();
             
+            // Set connecting state to show proper icon
+            this._isConnecting = true;
+            this._updateIcon(currentStatus);
+            this._updateMenu(currentStatus);
+            
             // Show notification that we're switching
             this._showNotification('Switching Gateway', `Switching to ${gateway}...`);
             
@@ -966,11 +971,19 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             this._gatewayListCache = null;
             this._connectionDetailsCache = null;
             
+            // Clear connecting state
+            this._isConnecting = false;
+            
             // Force status update by polling immediately
-            this._statusMonitor._poll();
+            await this._statusMonitor.forceUpdate();
             
             this._showNotification('Gateway Changed', `Successfully switched to: ${gateway}`);
         } catch (e) {
+            // Clear connecting state on error
+            this._isConnecting = false;
+            const currentStatus = this._statusMonitor.getCurrentStatus();
+            this._updateIcon(currentStatus);
+            
             ErrorHandler.handle(e, 'Failed to switch gateway', {notify: true, log: true});
         }
     }
