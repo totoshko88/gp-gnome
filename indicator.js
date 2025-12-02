@@ -672,6 +672,8 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 log: true
             });
         } finally {
+            // Wait a bit before clearing flag to let status stabilize
+            await this._delay(200);
             this._nonConnectionOperationInProgress = false;
             const currentStatus = this._statusMonitor.getCurrentStatus();
             this._updateIcon(currentStatus);
@@ -1392,6 +1394,8 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to get errors', {notify: true, log: true});
         } finally {
+            // Wait a bit before clearing flag to let status stabilize
+            await this._delay(200);
             this._nonConnectionOperationInProgress = false;
             const currentStatus = this._statusMonitor.getCurrentStatus();
             this._updateIcon(currentStatus);
@@ -1411,6 +1415,8 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to get notifications', {notify: true, log: true});
         } finally {
+            // Wait a bit before clearing flag to let status stabilize
+            await this._delay(200);
             this._nonConnectionOperationInProgress = false;
             const currentStatus = this._statusMonitor.getCurrentStatus();
             this._updateIcon(currentStatus);
