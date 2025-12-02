@@ -71,49 +71,54 @@ export class GlobalProtectClient {
 
         return new Promise((resolve, reject) => {
             let timeoutId = null;
-            let cancelledId = null;
             let completed = false;
+            let proc = null;
 
             const cleanup = () => {
                 if (completed) return;
                 completed = true;
 
                 if (timeoutId && this._timeoutIds.has(timeoutId)) {
-                    GLib.source_remove(timeoutId);
+                    try {
+                        GLib.source_remove(timeoutId);
+                    } catch (e) {
+                        // Ignore
+                    }
                     this._timeoutIds.delete(timeoutId);
-                }
-
-                if (cancelledId) {
-                    this._cancellable.disconnect(cancelledId);
                 }
             };
 
-            // Set up cancellation handler
-            cancelledId = this._cancellable.connect(() => {
-                cleanup();
-                proc.force_exit();
-                reject(new Error('Operation cancelled'));
-            });
-
-            const proc = Gio.Subprocess.new(
-                [this._commandPath, ...args],
-                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
-            );
+            // Create subprocess first
+            try {
+                proc = Gio.Subprocess.new(
+                    [this._commandPath, ...args],
+                    Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+                );
+            } catch (e) {
+                reject(new Error(`Failed to start command: ${e.message}`));
+                return;
+            }
 
             // Set up timeout
             timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, timeoutSeconds, () => {
+                if (completed) return GLib.SOURCE_REMOVE;
                 cleanup();
-                proc.force_exit();
+                try {
+                    proc.force_exit();
+                } catch (e) {
+                    // Process might have already exited
+                }
                 reject(new Error(`Command timed out after ${timeoutSeconds} seconds`));
                 return GLib.SOURCE_REMOVE;
             });
             this._timeoutIds.add(timeoutId);
 
-            // Execute command
-            proc.communicate_utf8_async(null, this._cancellable, (proc, result) => {
+            // Execute command - pass null for cancellable to avoid issues
+            proc.communicate_utf8_async(null, null, (proc, result) => {
                 cleanup();
 
-                if (this._cancellable.is_cancelled()) {
+                // Check if we were cancelled while waiting
+                if (this._cancellable && this._cancellable.is_cancelled()) {
                     reject(new Error('Operation cancelled'));
                     return;
                 }
@@ -139,27 +144,22 @@ export class GlobalProtectClient {
      * @private
      */
     async _delay(ms) {
-        if (this._cancellable.is_cancelled()) {
+        if (!this._cancellable || this._cancellable.is_cancelled()) {
             throw new Error('Operation cancelled');
         }
 
         return new Promise((resolve, reject) => {
             const timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
                 this._timeoutIds.delete(timeoutId);
-                resolve();
+                // Check if cancelled during delay
+                if (this._cancellable && this._cancellable.is_cancelled()) {
+                    reject(new Error('Operation cancelled'));
+                } else {
+                    resolve();
+                }
                 return GLib.SOURCE_REMOVE;
             });
             this._timeoutIds.add(timeoutId);
-
-            // Support cancellation during delay
-            const cancelledId = this._cancellable.connect(() => {
-                if (this._timeoutIds.has(timeoutId)) {
-                    GLib.source_remove(timeoutId);
-                    this._timeoutIds.delete(timeoutId);
-                }
-                this._cancellable.disconnect(cancelledId);
-                reject(new Error('Operation cancelled'));
-            });
         });
     }
 
