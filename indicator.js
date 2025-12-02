@@ -395,6 +395,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Get connection details asynchronously and update UI when ready
             if (!this._connectionDetailsCache) {
                 this._gpClient.getDetails().then(details => {
+                    console.info('gp-gnome: Got connection details:', JSON.stringify(details));
                     this._connectionDetailsCache = details;
                     
                     // Update status text with details
@@ -402,20 +403,24 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                     if (details.gateway) {
                         detailedText += `\nGateway: ${details.gateway}`;
                     }
-                    if (details.vpnIp) {
-                        detailedText += `\nAssigned IP: ${details.vpnIp}`;
+                    if (details.assignedIp) {
+                        detailedText += `\nAssigned IP: ${details.assignedIp}`;
                     }
-                    if (details.clientIp) {
-                        detailedText += `\nGateway IP: ${details.clientIp}`;
+                    if (details.gatewayIp) {
+                        detailedText += `\nGateway IP: ${details.gatewayIp}`;
                     }
+                    
+                    console.info('gp-gnome: Updating status text to:', detailedText);
                     
                     // Only update if still connected
                     const currentStatus = this._statusMonitor.getCurrentStatus();
                     if (currentStatus && currentStatus.connected) {
                         this._statusLabel.text = detailedText;
+                    } else {
+                        console.info('gp-gnome: Not updating - disconnected');
                     }
                 }).catch(e => {
-                    // Ignore errors, just don't show details
+                    console.error('gp-gnome: Failed to get connection details:', e.message);
                 });
             } else {
                 // Use cached details
@@ -423,11 +428,11 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 if (details.gateway) {
                     statusText += `\nGateway: ${details.gateway}`;
                 }
-                if (details.vpnIp) {
-                    statusText += `\nAssigned IP: ${details.vpnIp}`;
+                if (details.assignedIp) {
+                    statusText += `\nAssigned IP: ${details.assignedIp}`;
                 }
-                if (details.clientIp) {
-                    statusText += `\nGateway IP: ${details.clientIp}`;
+                if (details.gatewayIp) {
+                    statusText += `\nGateway IP: ${details.gatewayIp}`;
                 }
                 this._statusLabel.text = statusText;
             }

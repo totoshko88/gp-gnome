@@ -322,7 +322,7 @@ export class GlobalProtectClient {
             throw new Error('No details available');
         }
 
-        const details = {connected: false, portal: null, gateway: null, username: null, clientIp: null, vpnIp: null};
+        const details = {connected: false, portal: null, gateway: null, username: null, gatewayIp: null, assignedIp: null};
         
         if (result.stdout) {
             const lines = result.stdout.split('\n');
@@ -336,17 +336,24 @@ export class GlobalProtectClient {
                 if (lowerLine.includes('portal:')) {
                     details.portal = trimmed.split(':')[1]?.trim() || null;
                 }
-                if (lowerLine.includes('gateway:')) {
+                // Match "Gateway Name:" or "Gateway:"
+                if (lowerLine.includes('gateway name:')) {
+                    details.gateway = trimmed.split(':')[1]?.trim() || null;
+                } else if (lowerLine.includes('gateway:') && !lowerLine.includes('gateway ip') && !lowerLine.includes('gateway description')) {
                     details.gateway = trimmed.split(':')[1]?.trim() || null;
                 }
                 if (lowerLine.includes('user:') || lowerLine.includes('username:')) {
                     details.username = trimmed.split(':')[1]?.trim() || null;
                 }
-                if (lowerLine.includes('client ip:')) {
-                    details.clientIp = trimmed.split(':')[1]?.trim() || null;
+                // Match "Gateway IP Address:" or "Gateway IP:"
+                if (lowerLine.includes('gateway ip address:') || lowerLine.includes('gateway ip:')) {
+                    details.gatewayIp = trimmed.split(':')[1]?.trim() || null;
                 }
-                if (lowerLine.includes('vpn ip:') || lowerLine.includes('virtual ip:')) {
-                    details.vpnIp = trimmed.split(':')[1]?.trim() || null;
+                // Match "Assigned IP Address:", "VPN IP:", or "Virtual IP:"
+                if (lowerLine.includes('assigned ip address:') || lowerLine.includes('assigned ip:')) {
+                    details.assignedIp = trimmed.split(':')[1]?.trim() || null;
+                } else if (lowerLine.includes('vpn ip:') || lowerLine.includes('virtual ip:')) {
+                    details.assignedIp = trimmed.split(':')[1]?.trim() || null;
                 }
             }
         }
