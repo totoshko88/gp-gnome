@@ -357,6 +357,14 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['rediscover-network'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
         
+        // Check for permission/ownership errors
+        if (output.toLowerCase().includes('another user') || 
+            output.toLowerCase().includes('different user') ||
+            output.toLowerCase().includes('owned by') ||
+            output.toLowerCase().includes('permission denied')) {
+            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
+        }
+        
         if (output.toLowerCase().includes('successful') || output.toLowerCase().includes('success') || output.toLowerCase().includes('complete')) {
             return result.stdout || result.stderr || 'Network rediscovery completed';
         }
@@ -371,6 +379,14 @@ export class GlobalProtectClient {
     async resubmitHip(retryCount = 0) {
         const result = await this._executeCommand(['resubmit-hip'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
+        
+        // Check for permission/ownership errors
+        if (output.toLowerCase().includes('another user') || 
+            output.toLowerCase().includes('different user') ||
+            output.toLowerCase().includes('owned by') ||
+            output.toLowerCase().includes('permission denied')) {
+            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
+        }
         
         if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
             if (retryCount < MAX_RETRY_COUNT) {
@@ -398,6 +414,14 @@ export class GlobalProtectClient {
     async collectLog() {
         const result = await this._executeCommand(['collect-log'], COMMAND_TIMEOUT_LOG_COLLECTION);
         const output = result.stdout + result.stderr;
+        
+        // Check for permission/ownership errors
+        if (output.toLowerCase().includes('another user') || 
+            output.toLowerCase().includes('different user') ||
+            output.toLowerCase().includes('owned by') ||
+            output.toLowerCase().includes('permission denied')) {
+            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
+        }
         
         if (output.toLowerCase().includes('complete') || output.toLowerCase().includes('collection complete') ||
             output.includes('.tgz') || output.includes('saved to') || output.includes('support file')) {
