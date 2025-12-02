@@ -29,37 +29,15 @@ jobs:
       run: |
         make dist
     
+    - name: List dist contents
+      run: ls -la dist/
+    
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        name: GNOME GlobalProtect Extension v${{ steps.get_version.outputs.VERSION }}
-        body: |
-          # GNOME GlobalProtect Extension v${{ steps.get_version.outputs.VERSION }}
-          
-          A GNOME Shell extension for managing GlobalProtect VPN connections.
-          
-          ## Installation
-          
-          Download the `globalprotect@username.github.io.zip` file and install using:
-          
-          ```bash
-          gnome-extensions install globalprotect@username.github.io.zip
-          gnome-extensions enable globalprotect@username.github.io
-          ```
-          
-          ## Requirements
-          
-          - GNOME Shell 49 or compatible
-          - GlobalProtect CLI installed
-          
-          ## Documentation
-          
-          See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) for full documentation.
-          
-          ## Changelog
-          
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+        name: gp-gnome v${{ steps.get_version.outputs.VERSION }}
+        body_path: .github/RELEASE_NOTES.md
         files: |
-          dist/globalprotect@username.github.io.zip
+          dist/gp-gnome@totoshko88.github.io.zip
         draft: false
         prerelease: false
