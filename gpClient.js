@@ -364,11 +364,8 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['rediscover-network'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -387,11 +384,8 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['resubmit-hip'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -422,11 +416,8 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['collect-log'], COMMAND_TIMEOUT_LOG_COLLECTION);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -556,11 +547,8 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['show', '--version'], 5);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -573,16 +561,28 @@ export class GlobalProtectClient {
         
         return result.stdout || result.stderr || 'Version unknown';
     }
+    
+    /**
+     * Check if output contains permission/ownership error
+     * @param {string} output - Command output
+     * @returns {boolean}
+     * @private
+     */
+    _isPermissionError(output) {
+        const lowerOutput = output.toLowerCase();
+        return lowerOutput.includes('another user') ||
+               lowerOutput.includes('different user') ||
+               lowerOutput.includes('owned by') ||
+               lowerOutput.includes('permission denied') ||
+               lowerOutput.includes('same user or another user');
+    }
 
     async getErrors(retryCount = 0) {
         const result = await this._executeCommand(['show', '--error'], 5);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -600,11 +600,8 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['show', '--host-state'], 5);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -628,11 +625,8 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['show', '--notifications'], 5);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -650,11 +644,8 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['show', '--help'], 5);
         const output = result.stdout + result.stderr;
         
-        // Check for permission/ownership errors
-        if (output.toLowerCase().includes('another user') || 
-            output.toLowerCase().includes('different user') ||
-            output.toLowerCase().includes('owned by') ||
-            output.toLowerCase().includes('permission denied')) {
+        // Check for permission/ownership errors - only if command failed
+        if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
