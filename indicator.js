@@ -661,22 +661,34 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _showHostState() {
+        if (this._isDestroyed) return;
+        
         this._nonConnectionOperationInProgress = true;
         
         try {
+            if (!this._gpClient) return;
             const hostState = await this._gpClient.getHostState();
-            this._showInfoDialog('GlobalProtect Host State', hostState);
+            if (!this._isDestroyed) {
+                this._showInfoDialog('GlobalProtect Host State', hostState);
+            }
         } catch (e) {
-            ErrorHandler.handle(e, 'Failed to get host state', {
-                notify: true,
-                log: true
-            });
+            if (!this._isDestroyed) {
+                ErrorHandler.handle(e, 'Failed to get host state', {
+                    notify: true,
+                    log: true
+                });
+            }
         } finally {
             // Wait a bit before clearing flag to let status stabilize
-            await this._delay(200);
+            if (!this._isDestroyed) {
+                await this._delay(200);
+            }
             this._nonConnectionOperationInProgress = false;
-            const currentStatus = this._statusMonitor.getCurrentStatus();
-            this._updateIcon(currentStatus);
+            // Only update icon if not destroyed
+            if (!this._isDestroyed && this._statusMonitor) {
+                const currentStatus = this._statusMonitor.getCurrentStatus();
+                this._updateIcon(currentStatus);
+            }
         }
     }
 

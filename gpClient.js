@@ -615,7 +615,13 @@ export class GlobalProtectClient {
             }
         }
         
-        return result.stdout || result.stderr || 'No host state information';
+        // Check if output is empty or only whitespace
+        const trimmedOutput = (result.stdout || '').trim();
+        if (trimmedOutput.length === 0) {
+            return 'No host state information available.\n\nThis may happen when:\n• VPN is not connected\n• GlobalProtect service is not running\n• Host state data is not available';
+        }
+        
+        return trimmedOutput;
     }
 
     async getNotifications(retryCount = 0) {
