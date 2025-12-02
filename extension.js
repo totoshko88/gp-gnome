@@ -80,18 +80,21 @@ export default class GlobalProtectExtension extends Extension {
     }
 
     /**
-     * Connect to session manager to detect logout
+     * Connect to session manager for logout detection
+     * Uses GNOME Session Manager D-Bus interface
      * @private
      */
     _connectToSessionManager() {
         try {
-            const SessionManager = Main.sessionMode;
+            // Import GLib for spawning commands
+            const GLib = imports.gi.GLib;
             
-            // Listen for session mode changes (logout, lock, etc.)
+            // Listen for session ending signal
+            // When user logs out, disconnect VPN synchronously
             this._sessionModeChangedId = Main.sessionMode.connect('updated', () => {
-                // Check if session is ending (logout)
+                // Detect logout: session is not locked and not in overview
                 if (!Main.sessionMode.isLocked && !Main.sessionMode.hasOverview) {
-                    // Session is ending (logout) - disconnect VPN
+                    console.info('gp-gnome: Session ending detected, disconnecting VPN');
                     this._disconnectOnLogout();
                 }
             });
@@ -102,11 +105,24 @@ export default class GlobalProtectExtension extends Extension {
 
     /**
      * Disconnect VPN on logout
+     * Uses synchronous disconnect to ensure it completes before logout
      * @private
      */
-    async _disconnectOnLogout() {
+    _disconnectOnLogout() {
         try {
-            await this._gpClient.disconnect();
+            if (!this._gpClient) {
+                return;
+            }
+            
+            // Use synchronous spawn to ensure disconnect completes before logout
+            const GLib = imports.gi.GLib;
+            const [success, stdout, stderr] = GLib.spawn_command_line_sync('globalprotect disconnect');
+            
+            if (success) {
+                console.info('gp-gnome: VPN disconnected on logout');
+            } else {
+                console.error('gp-gnome: Failed to disconnect on logout:', stderr);
+            }
         } catch (error) {
             console.error('gp-gnome: Failed to disconnect on logout', error);
         }
