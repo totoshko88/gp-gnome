@@ -1,26 +1,21 @@
-# gp-gnome v1.3.2
+# gp-gnome v1.3.3
 
 GNOME Shell extension for GlobalProtect VPN CLI (PanGPLinux) integration.
 
 ## What's Changed
 
 ### Fixed
-- **Shell freeze on disable**: Fixed critical issue where GNOME Shell would freeze when disabling extension
-- **Auto-disconnect on logout**: Fixed VPN not disconnecting when user logs out
-- **Connection details display**: Fixed Gateway, Assigned IP, and Gateway IP not showing in menu
-- **Field parsing**: Corrected parsing of GlobalProtect CLI output fields (Gateway Name, Assigned IP Address, Gateway IP Address)
-- **Icon flickering**: Added stabilization delay for Show menu operations to prevent icon changes
-- **Another user error**: Added proper error handling for "another user" permission errors in all commands
-
-### Changed
-- **Disable order**: Changed cleanup order - cancel gpClient operations before destroying indicator
-- **Logout disconnect**: Uses synchronous disconnect to ensure VPN disconnects before logout completes
-- **Async operations**: Added timeout (3s) for connection details fetch to prevent hanging
+- **Shell freeze on disable**: Simplified async command execution to prevent GNOME Shell freeze when disabling extension
+- **False disconnect status**: Added debounce logic requiring 2 consecutive disconnected polls before showing disconnect
+- **Permission error false positives**: Check permission errors only when no useful output is returned
+- **Gateway switch icon**: Show "Connecting" icon during gateway switch instead of "Disconnected"
+- **Empty Host State**: Handle empty host state response with informative message
+- **Show commands errors**: Fixed false "another user" errors in Show menu commands
 
 ### Improved
-- **Error messages**: Clear user-friendly messages when GlobalProtect runs under different user
-- **Resource cleanup**: Better cleanup with _isDestroyed flag to prevent async callbacks after destroy
-- **Stability**: More robust handling of edge cases during extension lifecycle
+- **Async operations**: Removed problematic cancellation handlers that could cause hangs
+- **Status stability**: Debounce prevents icon flickering from temporary CLI glitches
+- **Error handling**: More accurate permission error detection
 
 ## Installation
 
@@ -39,10 +34,6 @@ Then restart GNOME Shell:
 
 - GNOME Shell 45, 46, 47, 48, or 49
 - GlobalProtect CLI installed and available in PATH
-
-## Documentation
-
-See [README.md](https://github.com/totoshko88/gp-gnome/blob/main/README.md) for full documentation.
 
 ## Full Changelog
 
