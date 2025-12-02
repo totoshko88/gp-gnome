@@ -546,9 +546,10 @@ export class GlobalProtectClient {
     async getVersion(retryCount = 0) {
         const result = await this._executeCommand(['show', '--version'], 5);
         const output = result.stdout + result.stderr;
+        const trimmedStdout = (result.stdout || '').trim();
         
-        // Check for permission/ownership errors - only if command failed
-        if (!result.success && this._isPermissionError(output)) {
+        // Check for permission/ownership errors - only if no useful output
+        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -559,7 +560,7 @@ export class GlobalProtectClient {
             }
         }
         
-        return result.stdout || result.stderr || 'Version unknown';
+        return trimmedStdout || 'Version unknown';
     }
     
     /**
@@ -580,9 +581,10 @@ export class GlobalProtectClient {
     async getErrors(retryCount = 0) {
         const result = await this._executeCommand(['show', '--error'], 5);
         const output = result.stdout + result.stderr;
+        const trimmedStdout = (result.stdout || '').trim();
         
-        // Check for permission/ownership errors - only if command failed
-        if (!result.success && this._isPermissionError(output)) {
+        // Check for permission/ownership errors - only if no useful output
+        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -593,15 +595,16 @@ export class GlobalProtectClient {
             }
         }
         
-        return result.stdout || result.stderr || 'No errors';
+        return trimmedStdout || 'No errors';
     }
 
     async getHostState(retryCount = 0) {
         const result = await this._executeCommand(['show', '--host-state'], 5);
         const output = result.stdout + result.stderr;
+        const trimmedOutput = (result.stdout || '').trim();
         
-        // Check for permission/ownership errors - only if command failed
-        if (!result.success && this._isPermissionError(output)) {
+        // Check for permission/ownership errors - only if output is empty and contains error text
+        if (trimmedOutput.length === 0 && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -613,7 +616,6 @@ export class GlobalProtectClient {
         }
         
         // Check if output is empty or only whitespace
-        const trimmedOutput = (result.stdout || '').trim();
         if (trimmedOutput.length === 0) {
             return 'No host state information available.\n\nThis may happen when:\n• VPN is not connected\n• GlobalProtect service is not running\n• Host state data is not available';
         }
@@ -624,9 +626,10 @@ export class GlobalProtectClient {
     async getNotifications(retryCount = 0) {
         const result = await this._executeCommand(['show', '--notifications'], 5);
         const output = result.stdout + result.stderr;
+        const trimmedStdout = (result.stdout || '').trim();
         
-        // Check for permission/ownership errors - only if command failed
-        if (!result.success && this._isPermissionError(output)) {
+        // Check for permission/ownership errors - only if no useful output
+        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -637,15 +640,16 @@ export class GlobalProtectClient {
             }
         }
         
-        return result.stdout || result.stderr || 'No notifications';
+        return trimmedStdout || 'No notifications';
     }
 
     async getHelp(retryCount = 0) {
         const result = await this._executeCommand(['show', '--help'], 5);
         const output = result.stdout + result.stderr;
+        const trimmedStdout = (result.stdout || '').trim();
         
-        // Check for permission/ownership errors - only if command failed
-        if (!result.success && this._isPermissionError(output)) {
+        // Check for permission/ownership errors - only if no useful output
+        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
         
@@ -656,7 +660,7 @@ export class GlobalProtectClient {
             }
         }
         
-        return result.stdout || result.stderr || 'No help available';
+        return trimmedStdout || 'No help available';
     }
 
     extractLogFilePath(output) {
