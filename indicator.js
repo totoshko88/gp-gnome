@@ -1446,7 +1446,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             const version = await this._gpClient.getVersion();
             const content = `${version}\n\n` +
                 `gp-gnome - GNOME Shell Extension\n` +
-                `Extension version: 1.3.1\n\n` +
+                `Extension version: 1.3.2\n\n` +
                 `Description:\n` +
                 `GNOME Shell extension gp-gnome for GlobalProtect VPN CLI (PanGPLinux) integration.\n` +
                 `Provides complete VPN management with native GNOME integration,\n` +
