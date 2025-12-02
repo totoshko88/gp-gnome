@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.3] - 2025-12-02
+
+### Fixed
+- **False disconnect status**: Added debounce logic to prevent temporary CLI glitches from showing false disconnected status
+- **Permission error false positives**: Fixed "another user" error showing when CLI returns valid data
+- **Gateway switch icon**: Show "Connecting" icon during gateway switch instead of "Disconnected"
+- **Empty Host State**: Handle empty host state response with informative message
+- **Show commands stability**: Added destroyed checks to prevent async callbacks after extension disable
+
+### Changed
+- **Disconnect debounce**: Require 2 consecutive disconnected polls before showing disconnected status
+- **Permission error logic**: Only check for permission errors when stdout is empty
+- **Gateway switch flow**: Properly set connecting state and update icon during gateway change
+
+### Improved
+- **Status stability**: Icon no longer flickers when clicking on extension or during Show operations
+- **Error handling**: More accurate detection of real permission errors vs CLI quirks
+- **Code quality**: Centralized permission error checking with `_isPermissionError()` helper
+
 ## [1.3.2] - 2025-12-02
 
 ### Fixed
