@@ -13,6 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.2] - 2025-12-02
+
+### Fixed
+- **Shell freeze on disable**: Fixed critical issue where GNOME Shell would freeze when disabling extension
+- **Auto-disconnect on logout**: Fixed VPN not disconnecting when user logs out
+- **Connection details display**: Fixed Gateway, Assigned IP, and Gateway IP not showing in menu
+- **Field parsing**: Corrected parsing of GlobalProtect CLI output fields (Gateway Name, Assigned IP Address, Gateway IP Address)
+- **Icon flickering**: Added stabilization delay for Show menu operations to prevent icon changes
+- **Another user error**: Added proper error handling for "another user" permission errors in all commands
+
+### Changed
+- **Disable order**: Changed cleanup order - cancel gpClient operations before destroying indicator
+- **Logout disconnect**: Uses synchronous disconnect to ensure VPN disconnects before logout completes
+- **Async operations**: Added timeout (3s) for connection details fetch to prevent hanging
+
+### Improved
+- **Error messages**: Clear user-friendly messages when GlobalProtect runs under different user
+- **Resource cleanup**: Better cleanup with _isDestroyed flag to prevent async callbacks after destroy
+- **Stability**: More robust handling of edge cases during extension lifecycle
+
 ## [1.3.1] - 2025-12-01
 
 ### Fixed

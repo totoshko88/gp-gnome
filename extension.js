@@ -20,6 +20,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import GLib from 'gi://GLib';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -41,6 +42,8 @@ export default class GlobalProtectExtension extends Extension {
         this._gpClient = null;
         this._statusMonitor = null;
         this._settings = null;
+        this._sessionModeChangedId = null;
+        this._autoDisconnectOnLogout = true;
     }
 
     /**
@@ -71,60 +74,24 @@ export default class GlobalProtectExtension extends Extension {
             
             // Start status monitoring
             this._statusMonitor.start();
-            
-            // Connect to session manager for logout detection
-            this._connectToSessionManager();
         } catch (error) {
             console.error('gp-gnome: Failed to enable', error);
         }
     }
 
     /**
-     * Connect to session manager for logout detection
-     * Uses GNOME Session Manager D-Bus interface
+     * Disconnect VPN synchronously
+     * Uses spawn_command_line_sync to ensure disconnect completes
      * @private
      */
-    _connectToSessionManager() {
+    _disconnectVpnSync() {
         try {
-            // Import GLib for spawning commands
-            const GLib = imports.gi.GLib;
-            
-            // Listen for session ending signal
-            // When user logs out, disconnect VPN synchronously
-            this._sessionModeChangedId = Main.sessionMode.connect('updated', () => {
-                // Detect logout: session is not locked and not in overview
-                if (!Main.sessionMode.isLocked && !Main.sessionMode.hasOverview) {
-                    console.info('gp-gnome: Session ending detected, disconnecting VPN');
-                    this._disconnectOnLogout();
-                }
-            });
+            // Use synchronous spawn to ensure disconnect completes
+            GLib.spawn_command_line_sync('globalprotect disconnect');
+            console.info('gp-gnome: VPN disconnected');
         } catch (error) {
-            console.error('gp-gnome: Failed to connect to session manager', error);
-        }
-    }
-
-    /**
-     * Disconnect VPN on logout
-     * Uses synchronous disconnect to ensure it completes before logout
-     * @private
-     */
-    _disconnectOnLogout() {
-        try {
-            if (!this._gpClient) {
-                return;
-            }
-            
-            // Use synchronous spawn to ensure disconnect completes before logout
-            const GLib = imports.gi.GLib;
-            const [success, stdout, stderr] = GLib.spawn_command_line_sync('globalprotect disconnect');
-            
-            if (success) {
-                console.info('gp-gnome: VPN disconnected on logout');
-            } else {
-                console.error('gp-gnome: Failed to disconnect on logout:', stderr);
-            }
-        } catch (error) {
-            console.error('gp-gnome: Failed to disconnect on logout', error);
+            // Ignore errors - VPN might already be disconnected
+            console.info('gp-gnome: VPN disconnect attempted');
         }
     }
 
@@ -134,35 +101,40 @@ export default class GlobalProtectExtension extends Extension {
      * Resources are cleaned up in reverse order of creation
      */
     disable() {
-        // 1. Stop monitoring first (prevents new operations)
+        // Disconnect VPN on disable (covers logout, lock screen, extension disable)
+        if (this._autoDisconnectOnLogout) {
+            this._disconnectVpnSync();
+        }
+        
+        // 1. Disconnect session signals first
+        if (this._sessionModeChangedId) {
+            try {
+                Main.sessionMode.disconnect(this._sessionModeChangedId);
+            } catch (e) {
+                // Ignore errors
+            }
+            this._sessionModeChangedId = null;
+        }
+        
+        // 2. Stop monitoring (prevents new operations)
         if (this._statusMonitor) {
             this._statusMonitor.stop();
             this._statusMonitor = null;
         }
         
-        // 2. Destroy UI (might trigger operations)
-        if (this._indicator) {
-            this._indicator.destroy();
-            this._indicator = null;
-        }
-        
-        // 3. Cancel ongoing operations
+        // 3. Cancel ongoing operations in gpClient BEFORE destroying indicator
         if (this._gpClient) {
             this._gpClient.destroy();
             this._gpClient = null;
         }
         
-        // 4. Disconnect signals (no more events)
-        if (this._sessionModeChangedId) {
-            try {
-                Main.sessionMode.disconnect(this._sessionModeChangedId);
-            } catch (e) {
-                console.error('Failed to disconnect session signal:', e);
-            }
-            this._sessionModeChangedId = null;
+        // 4. Destroy UI last (after all async operations are cancelled)
+        if (this._indicator) {
+            this._indicator.destroy();
+            this._indicator = null;
         }
         
-        // 5. Clear settings last
+        // 5. Clear settings
         this._settings = null;
     }
 }
