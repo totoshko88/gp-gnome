@@ -385,7 +385,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Get connection details and show gateway info
             if (!this._connectionDetailsCache) {
                 try {
-                    this._connectionDetailsCache = await this._gpClient.getConnectionDetails();
+                    this._connectionDetailsCache = await this._gpClient.getDetails();
                 } catch (e) {
                     // Ignore errors, just don't cache
                 }
@@ -393,14 +393,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             
             if (this._connectionDetailsCache) {
                 const details = this._connectionDetailsCache;
-                if (details.gatewayName) {
-                    statusText += `\nGateway: ${details.gatewayName}`;
+                if (details.gateway) {
+                    statusText += `\nGateway: ${details.gateway}`;
                 }
-                if (details.assignedIp) {
-                    statusText += `\nAssigned IP: ${details.assignedIp}`;
+                if (details.vpnIp) {
+                    statusText += `\nAssigned IP: ${details.vpnIp}`;
                 }
-                if (details.gatewayIp) {
-                    statusText += `\nGateway IP: ${details.gatewayIp}`;
+                if (details.clientIp) {
+                    statusText += `\nGateway IP: ${details.clientIp}`;
                 }
             }
             
