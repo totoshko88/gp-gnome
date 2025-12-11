@@ -1,21 +1,13 @@
-# gp-gnome v1.3.3
+# gp-gnome v1.3.4
 
 GNOME Shell extension for GlobalProtect VPN CLI (PanGPLinux) integration.
 
 ## What's Changed
 
-### Fixed
-- **Shell freeze on disable**: Simplified async command execution to prevent GNOME Shell freeze when disabling extension
-- **False disconnect status**: Added debounce logic requiring 2 consecutive disconnected polls before showing disconnect
-- **Permission error false positives**: Check permission errors only when no useful output is returned
-- **Gateway switch icon**: Show "Connecting" icon during gateway switch instead of "Disconnected"
-- **Empty Host State**: Handle empty host state response with informative message
-- **Show commands errors**: Fixed false "another user" errors in Show menu commands
-
-### Improved
-- **Async operations**: Removed problematic cancellation handlers that could cause hangs
-- **Status stability**: Debounce prevents icon flickering from temporary CLI glitches
-- **Error handling**: More accurate permission error detection
+### Fixed (EGO Review Compliance)
+- **Dead code removal**: Removed unused session mode handler and unnecessary variable
+- **Enable error handling**: Removed try-catch wrapper from enable() - GNOME Shell handles errors natively
+- **Timeout cleanup**: Replaced setTimeout with GLib.timeout_add for proper cleanup on destroy per [EGO Review Guidelines](https://gjs.guide/extensions/review-guidelines/review-guidelines.html#remove-main-loop-sources)
 
 ## Installation
 

@@ -405,9 +405,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 // Use a timeout to prevent hanging
                 Promise.race([
                     this._gpClient.getDetails(),
-                    new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Timeout')), 3000)
-                    )
+                    new Promise((_, reject) => {
+                        const timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 3000, () => {
+                            this._timeoutIds.delete(timeoutId);
+                            reject(new Error('Timeout'));
+                            return GLib.SOURCE_REMOVE;
+                        });
+                        this._timeoutIds.add(timeoutId);
+                    })
                 ]).then(details => {
                     console.info('gp-gnome: Got connection details:', JSON.stringify(details));
                     this._connectionDetailsCache = details;

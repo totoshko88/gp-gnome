@@ -42,8 +42,6 @@ export default class GlobalProtectExtension extends Extension {
         this._gpClient = null;
         this._statusMonitor = null;
         this._settings = null;
-        this._sessionModeChangedId = null;
-        this._autoDisconnectOnLogout = true;
     }
 
     /**
@@ -51,32 +49,28 @@ export default class GlobalProtectExtension extends Extension {
      * Creates all components and adds indicator to panel
      */
     enable() {
-        try {
-            // Load GSettings
-            this._settings = this.getSettings();
-            
-            // Create GlobalProtectClient instance
-            this._gpClient = new GlobalProtectClient(this._settings);
-            
-            // Create StatusMonitor instance
-            this._statusMonitor = new StatusMonitor(this._gpClient, this._settings);
-            
-            // Create GlobalProtectIndicator instance
-            this._indicator = new GlobalProtectIndicator(
-                this._gpClient,
-                this._statusMonitor,
-                this._settings,
-                this.path
-            );
-            
-            // Add indicator to panel status area
-            Main.panel.addToStatusArea(this.uuid, this._indicator);
-            
-            // Start status monitoring
-            this._statusMonitor.start();
-        } catch (error) {
-            console.error('gp-gnome: Failed to enable', error);
-        }
+        // Load GSettings
+        this._settings = this.getSettings();
+        
+        // Create GlobalProtectClient instance
+        this._gpClient = new GlobalProtectClient(this._settings);
+        
+        // Create StatusMonitor instance
+        this._statusMonitor = new StatusMonitor(this._gpClient, this._settings);
+        
+        // Create GlobalProtectIndicator instance
+        this._indicator = new GlobalProtectIndicator(
+            this._gpClient,
+            this._statusMonitor,
+            this._settings,
+            this.path
+        );
+        
+        // Add indicator to panel status area
+        Main.panel.addToStatusArea(this.uuid, this._indicator);
+        
+        // Start status monitoring
+        this._statusMonitor.start();
     }
 
     /**
@@ -85,28 +79,15 @@ export default class GlobalProtectExtension extends Extension {
      * Resources are cleaned up in reverse order of creation
      */
     disable() {
-        // Note: Auto-disconnect on logout is handled by spawning async process
+        // Auto-disconnect on logout - spawn async process
         // We don't wait for it to complete to avoid blocking Shell
-        if (this._autoDisconnectOnLogout) {
-            try {
-                // Spawn async disconnect - don't wait for completion
-                GLib.spawn_command_line_async('globalprotect disconnect');
-            } catch (e) {
-                // Ignore errors - VPN might already be disconnected
-            }
+        try {
+            GLib.spawn_command_line_async('globalprotect disconnect');
+        } catch (e) {
+            // Ignore errors - VPN might already be disconnected
         }
         
-        // 1. Disconnect session signals first
-        if (this._sessionModeChangedId) {
-            try {
-                Main.sessionMode.disconnect(this._sessionModeChangedId);
-            } catch (e) {
-                // Ignore errors
-            }
-            this._sessionModeChangedId = null;
-        }
-        
-        // 2. Stop monitoring (prevents new operations)
+        // 1. Stop monitoring (prevents new operations)
         if (this._statusMonitor) {
             this._statusMonitor.stop();
             this._statusMonitor = null;

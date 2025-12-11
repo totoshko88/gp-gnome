@@ -2,7 +2,7 @@
   "uuid": "gp-gnome@totoshko88.github.io",
   "name": "gp-gnome",
   "description": "GNOME Shell extension gp-gnome for GlobalProtect VPN CLI (PanGPLinux) integration. Provides complete VPN management with native GNOME integration, comprehensive functionality, and intelligent handling of known CLI issues.\n\nDesigned for GlobalProtect CLI (also known as PanGPLinux) - the official Palo Alto Networks VPN client for Linux.\n\nFeatures:\n* Connect/disconnect with MFA support\n* Real-time connection monitoring\n* Gateway selection and switching\n* Interactive settings configuration\n* Advanced operations (HIP, logs, network rediscovery)\n* Automatic retry logic for CLI bugs\n* Auto-disconnect on logout\n* Native GNOME Shell integration\n\nNote: This extension accesses clipboard only when you explicitly click the \"Copy\" button in information dialogs.\n\nTrademark Notice: GlobalProtect is a registered trademark of Palo Alto Networks, Inc. This extension is an independent project and is not affiliated with, endorsed by, or sponsored by Palo Alto Networks, Inc.\n\nAuthor: Anton Isaiev\nContact: totoshko88@gmail.com\nRepository: https://github.com/totoshko88/gp-gnome",
-  "version": 4,
+  "version": 5,
   "shell-version": ["45", "46", "47", "48", "49"],
   "url": "https://github.com/totoshko88/gp-gnome",
   "settings-schema": "org.gnome.shell.extensions.gp-gnome"

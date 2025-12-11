@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.4] - 2025-12-11
+
+### Fixed
+- **EGO Review compliance**: Removed dead code (unused session mode handler, unnecessary variable)
+- **EGO Review compliance**: Removed try-catch wrapper from enable() - GNOME Shell handles errors
+- **EGO Review compliance**: Replaced setTimeout with GLib.timeout_add for proper cleanup on destroy
+
 ## [1.3.3] - 2025-12-02
 
 ### Fixed
