@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--49-blue.svg)](https://www.gnome.org/)
-[![Version](https://img.shields.io/badge/version-1.3.3-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.4-green.svg)](CHANGELOG.md)
 
 **gp-gnome** is a GNOME Shell extension for GlobalProtect VPN CLI (PanGPLinux) integration. Provides complete VPN management with native GNOME integration, comprehensive functionality, and intelligent handling of known CLI issues.
 
@@ -96,7 +96,7 @@ Designed for **GlobalProtect CLI** (also known as **PanGPLinux**) - the official
 
 1. Download the latest release:
 ```bash
-wget https://github.com/totoshko88/gp-gnome/releases/download/v1.3.3/gp-gnome@totoshko88.github.io.zip
+wget https://github.com/totoshko88/gp-gnome/releases/download/v1.3.4/gp-gnome@totoshko88.github.io.zip
 ```
 
 2. Install the extension:
@@ -419,74 +419,19 @@ This project is licensed under the GNU General Public License v3.0 or later - se
 
 Copyright (C) 2025 Anton Isaiev <totoshko88@gmail.com>
 
-## Credits
-
-Developed for GNOME Shell 49 with GlobalProtect VPN CLI integration.
-
-## Support
-
-For issues, questions, or feature requests, please open an issue on the GitHub repository.
-
-## 📝 Changelog
-
-### Version 1.3.3 (Current)
-- **Review Compliance**: All extensions.gnome.org review issues addressed
-- **Logging**: Replaced deprecated log() with console.*, minimal logging
-- **SVG Icons**: Converted all icons from PNG to SVG for better scaling
-- **Timeouts**: Proper tracking and cleanup in all destroy() methods
-- **Cancellable**: Gio.Cancellable support for all subprocess operations
-- **Input Validation**: Type checking on all method parameters
-- **Race Conditions**: Operation locks prevent concurrent operations
-- **Icon Stability**: Fixed flickering during non-connection operations
-- **Code Quality**: Constants, better error handling, improved cleanup order
-- **Memory Management**: No leaks, proper resource cleanup
-
-See [CHANGELOG.md](CHANGELOG.md) for complete version history.
-
-## 🏆 Code Quality
-
-This extension follows GNOME Shell best practices and has been thoroughly reviewed:
-
-- ✅ **100% Review Compliance** - All extensions.gnome.org guidelines met
-- ✅ **Modern JavaScript** - ES6+ features, async/await, proper error handling
-- ✅ **Memory Management** - Proper cleanup, no leaks, cancellable operations
-- ✅ **Resource Tracking** - All timeouts and signals properly managed
-- ✅ **Input Validation** - Type checking on all public methods
-- ✅ **Error Handling** - Comprehensive error handling with user-friendly messages
-- ✅ **Testing** - Unit tests and property-based tests included
-- ✅ **Documentation** - Inline comments and comprehensive docs
-
-**Architecture**:
-- Modular design with clear separation of concerns
-- Proper lifecycle management (enable/disable)
-- Race condition prevention
-- Robust cancellation support
-
-## 🤝 Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
 ## 📄 License
 
 GPL-3.0-or-later - see [LICENSE](LICENSE) file.
 
-Copyright (C) 2025 Anton Isaiev <totoshko88@gmail.com>
+## �  Documentation
 
-## 👤 Author
-
-**Anton Isaiev**
-- Email: totoshko88@gmail.com
-- GitHub: [@totoshko88](https://github.com/totoshko88)
-- Repository: [gp-gnome](https://github.com/totoshko88/gp-gnome)
-
-## 🙏 Acknowledgments
-
-- Designed for GlobalProtect CLI (PanGPLinux) - Palo Alto Networks VPN client for Linux
-- Built for GNOME Shell 45-49
-- Tested on Ubuntu 24.04 with GNOME Shell 49
+- [CHANGELOG.md](CHANGELOG.md) - Version history
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
+- [DISTRIBUTION.md](DISTRIBUTION.md) - Release and submission instructions
 
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/totoshko88/gp-gnome/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/totoshko88/gp-gnome/discussions)
 - **Email**: totoshko88@gmail.com
+
+Copyright (C) 2025 Anton Isaiev
