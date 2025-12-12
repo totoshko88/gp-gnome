@@ -413,23 +413,25 @@ Quick start:
 4. Run the test suites
 5. Submit a pull request
 
-## License
-
-This project is licensed under the GNU General Public License v3.0 or later - see the [LICENSE](LICENSE) file for details.
-
-Copyright (C) 2025 Anton Isaiev <totoshko88@gmail.com>
-
 ## 📄 License
 
 GPL-3.0-or-later - see [LICENSE](LICENSE) file.
 
-## �  Documentation
+## 📚 Documentation
 
 - [CHANGELOG.md](CHANGELOG.md) - Version history
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [DISTRIBUTION.md](DISTRIBUTION.md) - Release and submission instructions
 
-## 📞 Support
+## ☕ Support the Project
+
+If you find this extension useful, consider supporting its development:
+
+- **Ko-Fi**: [ko-fi.com/totoshko88](https://ko-fi.com/totoshko88)
+- **PayPal**: totoshko88@gmail.com
+- **Monobank (UAH)**: [send.monobank.ua/jar/2UgaGcQ3JC](https://send.monobank.ua/jar/2UgaGcQ3JC)
+
+## 📞 Contact
 
 - **Issues**: [GitHub Issues](https://github.com/totoshko88/gp-gnome/issues)
 - **Email**: totoshko88@gmail.com
