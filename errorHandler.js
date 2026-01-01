@@ -1,22 +1,22 @@
 /*
  * GlobalProtect VPN Indicator
  * GNOME Shell Extension
- * 
+ *
  * Copyright (C) 2025 Anton Isaiev <totoshko88@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * 
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -26,7 +26,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
  * ErrorHandler - Centralized error handling utility
  * Provides consistent error handling across the extension with logging,
  * user notifications, and sensitive data sanitization
- * 
+ *
  * Notification System:
  * - Uses Main.notifyError() for error notifications (red/warning style)
  * - Success notifications use Main.notify() (called from indicator.js)
@@ -36,7 +36,7 @@ export class ErrorHandler {
     /**
      * Handle an error with logging, notification, and UI updates
      * Uses Main.notifyError() to display error notifications to the user
-     * 
+     *
      * @param {Error} error - The error object
      * @param {string} context - Context description (e.g., 'Connection failed')
      * @param {Object} options - Optional configuration
@@ -57,7 +57,7 @@ export class ErrorHandler {
         // Log error with sanitized message
         if (log) {
             const sanitizedMessage = this._sanitizeForLog(error.message || error.toString());
-            console.error(`${context}: ${sanitizedMessage}`, error);
+            console.error(`gp-gnome: ${context}: ${sanitizedMessage}`);
         }
 
         // Show error notification to user using Main.notifyError()
@@ -84,7 +84,7 @@ export class ErrorHandler {
         const lowerMessage = message.toLowerCase();
 
         // Command not found / not installed
-        if (lowerMessage.includes('not installed') || 
+        if (lowerMessage.includes('not installed') ||
             lowerMessage.includes('not in path') ||
             lowerMessage.includes('command not found')) {
             return 'GlobalProtect CLI is not installed or not in PATH';
@@ -96,7 +96,7 @@ export class ErrorHandler {
         }
 
         // Authentication errors
-        if (lowerMessage.includes('authentication') || 
+        if (lowerMessage.includes('authentication') ||
             lowerMessage.includes('auth') ||
             lowerMessage.includes('credentials')) {
             return 'Authentication failed. Please check your credentials.';
@@ -108,27 +108,27 @@ export class ErrorHandler {
         }
 
         // Network errors
-        if (lowerMessage.includes('network') || 
+        if (lowerMessage.includes('network') ||
             lowerMessage.includes('connection refused') ||
             lowerMessage.includes('unreachable')) {
             return 'Network error. Please check your connection.';
         }
 
         // Permission errors
-        if (lowerMessage.includes('permission') || 
+        if (lowerMessage.includes('permission') ||
             lowerMessage.includes('access denied')) {
             return 'Permission denied. You may need administrator privileges.';
         }
 
         // MFA errors
-        if (lowerMessage.includes('mfa') || 
+        if (lowerMessage.includes('mfa') ||
             lowerMessage.includes('multi-factor') ||
             lowerMessage.includes('2fa')) {
             return 'Multi-factor authentication required or failed';
         }
 
         // Configuration errors
-        if (lowerMessage.includes('configuration') || 
+        if (lowerMessage.includes('configuration') ||
             lowerMessage.includes('config')) {
             return 'Configuration error. Please check your settings.';
         }
