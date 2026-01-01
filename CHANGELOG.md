@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.5] - 2026-01-01
+
+### Fixed
+- **Auto-disconnect order**: VPN now disconnects FIRST on disable to ensure logout disconnects work
+
+### Improved
+- **Code refactoring**: Extracted retry logic and permission checks into reusable helper methods
+- **Poll interval**: Settings changes now apply immediately without extension restart
+- **Constants**: Centralized error patterns and messages for better maintainability
+- **Release workflow**: Now extracts release notes directly from CHANGELOG.md
+
 ## [1.3.4] - 2025-12-11
 
 ### Fixed

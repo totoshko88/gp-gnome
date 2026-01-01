@@ -25,6 +25,34 @@ jobs:
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
     
+    - name: Extract changelog for version
+      id: changelog
+      run: |
+        VERSION="${{ steps.get_version.outputs.VERSION }}"
+        # Extract section between current version and next version header
+        CHANGELOG=$(awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md)
+        # Write to file for body_path
+        echo "$CHANGELOG" > /tmp/release_notes.md
+        # Add installation instructions
+        cat >> /tmp/release_notes.md << 'EOF'
+
+        ## Installation
+
+        Download the `gp-gnome@totoshko88.github.io.zip` file and install:
+
+        ```bash
+        gnome-extensions install gp-gnome@totoshko88.github.io.zip --force
+        gnome-extensions enable gp-gnome@totoshko88.github.io
+        ```
+
+        Then restart GNOME Shell (Wayland: log out/in, X11: Alt+F2 → r → Enter)
+
+        ## Requirements
+
+        - GNOME Shell 45, 46, 47, 48, or 49
+        - GlobalProtect CLI installed
+        EOF
+    
     - name: Create distribution package
       run: |
         make dist
@@ -36,7 +64,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         name: gp-gnome v${{ steps.get_version.outputs.VERSION }}
-        body_path: .github/RELEASE_NOTES.md
+        body_path: /tmp/release_notes.md
         files: |
           dist/gp-gnome@totoshko88.github.io.zip
         draft: false

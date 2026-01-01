@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--49-blue.svg)](https://www.gnome.org/)
-[![Version](https://img.shields.io/badge/version-1.3.4-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.5-green.svg)](CHANGELOG.md)
 
 **gp-gnome** is a GNOME Shell extension for GlobalProtect VPN CLI (PanGPLinux) integration. Provides complete VPN management with native GNOME integration, comprehensive functionality, and intelligent handling of known CLI issues.
 
@@ -96,7 +96,7 @@ Designed for **GlobalProtect CLI** (also known as **PanGPLinux**) - the official
 
 1. Download the latest release:
 ```bash
-wget https://github.com/totoshko88/gp-gnome/releases/download/v1.3.4/gp-gnome@totoshko88.github.io.zip
+wget https://github.com/totoshko88/gp-gnome/releases/download/v1.3.5/gp-gnome@totoshko88.github.io.zip
 ```
 
 2. Install the extension:
