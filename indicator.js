@@ -1205,14 +1205,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             });
 
             const sslOnlyCheckbox = new St.Button({
-                style: 'width: 20px; height: 20px; border: 2px solid #ffffff; border-radius: 4px; background-color: ' + (currentSslOnly ? '#3584e4' : 'transparent') + ';',
+                style: `width: 20px; height: 20px; border: 2px solid #ffffff; border-radius: 4px; background-color: ${currentSslOnly ? '#3584e4' : 'transparent'};`,
                 can_focus: true
             });
 
             let sslOnlyChecked = currentSslOnly;
             sslOnlyCheckbox.connect('clicked', () => {
                 sslOnlyChecked = !sslOnlyChecked;
-                sslOnlyCheckbox.style = 'width: 20px; height: 20px; border: 2px solid #ffffff; border-radius: 4px; background-color: ' + (sslOnlyChecked ? '#3584e4' : 'transparent') + ';';
+                sslOnlyCheckbox.style = `width: 20px; height: 20px; border: 2px solid #ffffff; border-radius: 4px; background-color: ${sslOnlyChecked ? '#3584e4' : 'transparent'};`;
             });
 
             sslOnlyBox.add_child(sslOnlyCheckbox);
@@ -1251,8 +1251,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 const isSelected = level === currentLogLevel;
                 const button = new St.Button({
                     label: level.charAt(0).toUpperCase() + level.slice(1),
-                    style: 'font-size: 10pt; padding: 6px 12px; border-radius: 4px; ' +
-                           (isSelected ? 'background-color: #3584e4; color: #ffffff;' : 'background-color: #3a3a3a; color: #cccccc;'),
+                    style: `font-size: 10pt; padding: 6px 12px; border-radius: 4px; ${isSelected ? 'background-color: #3584e4; color: #ffffff;' : 'background-color: #3a3a3a; color: #cccccc;'}`,
                     can_focus: true
                 });
 
@@ -1262,8 +1261,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                     logLevelButtons.forEach((btn, idx) => {
                         const lvl = logLevels[idx];
                         const selected = lvl === selectedLogLevel;
-                        btn.style = 'font-size: 10pt; padding: 6px 12px; border-radius: 4px; ' +
-                                   (selected ? 'background-color: #3584e4; color: #ffffff;' : 'background-color: #3a3a3a; color: #cccccc;');
+                        btn.style = `font-size: 10pt; padding: 6px 12px; border-radius: 4px; ${selected ? 'background-color: #3584e4; color: #ffffff;' : 'background-color: #3a3a3a; color: #cccccc;'}`;
                     });
                 });
 
