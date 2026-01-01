@@ -1,22 +1,22 @@
 /*
  * GlobalProtect VPN Indicator
  * GNOME Shell Extension
- * 
+ *
  * Copyright (C) 2025 Anton Isaiev <totoshko88@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * 
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -37,7 +37,7 @@ export const StatusMonitor = GObject.registerClass({
 }, class StatusMonitor extends GObject.Object {
     _init(gpClient, settings) {
         super._init();
-        
+
         this._gpClient = gpClient;
         this._settings = settings;
         this._timeoutId = null;
@@ -45,12 +45,12 @@ export const StatusMonitor = GObject.registerClass({
         this._pollInterval = 5000; // Default 5 seconds in milliseconds
         this._isStopped = false; // Flag to prevent polling after stop
         this._settingsChangedId = null;
-        
+
         // Debounce counter for disconnect events
         // Prevents false disconnects when CLI temporarily reports wrong status
         this._disconnectDebounceCount = 0;
         this._disconnectDebounceThreshold = 2; // Require 2 consecutive disconnected polls
-        
+
         // Read poll interval from settings and connect to changes
         if (this._settings) {
             this._pollInterval = this._settings.get_int('poll-interval') * 1000;
@@ -67,12 +67,12 @@ export const StatusMonitor = GObject.registerClass({
      */
     _onPollIntervalChanged() {
         if (!this._settings) return;
-        
+
         const newInterval = this._settings.get_int('poll-interval') * 1000;
         if (newInterval === this._pollInterval) return;
-        
+
         this._pollInterval = newInterval;
-        
+
         // Restart polling with new interval if currently running
         if (this._timeoutId && !this._isStopped) {
             GLib.source_remove(this._timeoutId);
@@ -96,10 +96,10 @@ export const StatusMonitor = GObject.registerClass({
         if (this._timeoutId) {
             return;
         }
-        
+
         // Do initial poll immediately
         this._poll();
-        
+
         // Set up periodic polling
         this._timeoutId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
@@ -117,12 +117,12 @@ export const StatusMonitor = GObject.registerClass({
      */
     stop() {
         this._isStopped = true;
-        
+
         if (this._timeoutId) {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = null;
         }
-        
+
         // Disconnect settings listener
         if (this._settingsChangedId && this._settings) {
             this._settings.disconnect(this._settingsChangedId);
@@ -147,15 +147,15 @@ export const StatusMonitor = GObject.registerClass({
         if (this._isStopped) {
             return;
         }
-        
+
         try {
             const status = await this._gpClient.getStatus();
-            
+
             // Check again after async operation
             if (this._isStopped) {
                 return;
             }
-            
+
             // Only emit signal if status actually changed
             if (this._hasStatusChanged(status)) {
                 this._currentStatus = status;
@@ -178,14 +178,14 @@ export const StatusMonitor = GObject.registerClass({
         if (this._currentStatus === null) {
             return true;
         }
-        
+
         const wasConnected = this._currentStatus && this._currentStatus.connected;
         const isConnected = newStatus && newStatus.connected;
-        
+
         // If transitioning from connected to disconnected, apply debounce
         if (wasConnected && !isConnected) {
             this._disconnectDebounceCount++;
-            
+
             // Only report disconnect after threshold consecutive polls
             if (this._disconnectDebounceCount < this._disconnectDebounceThreshold) {
                 // Don't report change yet - might be temporary
@@ -195,12 +195,12 @@ export const StatusMonitor = GObject.registerClass({
             this._disconnectDebounceCount = 0;
             return true;
         }
-        
+
         // Reset debounce counter if connected
         if (isConnected) {
             this._disconnectDebounceCount = 0;
         }
-        
+
         // Compare status objects for other changes
         return JSON.stringify(newStatus) !== JSON.stringify(this._currentStatus);
     }

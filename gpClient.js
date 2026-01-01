@@ -1,22 +1,22 @@
 /*
  * GlobalProtect VPN Indicator
  * GNOME Shell Extension
- * 
+ *
  * Copyright (C) 2025 Anton Isaiev <totoshko88@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * 
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -201,8 +201,8 @@ export class GlobalProtectClient {
         }
 
         if (statusCallback) {
-            const message = retryCount > 0 
-                ? `Retrying connection (attempt ${retryCount + 1})...` 
+            const message = retryCount > 0
+                ? `Retrying connection (attempt ${retryCount + 1})...`
                 : 'Initiating connection...';
             statusCallback('connecting', message);
         }
@@ -221,7 +221,7 @@ export class GlobalProtectClient {
                 await this._delay(RETRY_DELAY_MS);
                 return this.connect(portal, statusCallback, retryCount + 1, username);
             }
-            
+
             const status = await this.getStatus();
             if (status.connected) {
                 return {success: true, message: 'Already connected', mfaRequired: false, mfaFailed: false};
@@ -281,14 +281,14 @@ export class GlobalProtectClient {
     async disconnect(retryCount = 0) {
         const result = await this._executeCommand(['disconnect'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
-        
+
         if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
             if (retryCount < MAX_RETRY_COUNT) {
                 await this._delay(RETRY_DELAY_MS);
                 return this.disconnect(retryCount + 1);
             }
         }
-        
+
         const lowerOutput = output.toLowerCase();
         if (lowerOutput.includes('disconnect') || lowerOutput.includes('success') || result.success) {
             return result.stdout || result.stderr || 'Disconnected';
@@ -336,19 +336,19 @@ export class GlobalProtectClient {
     async getDetails() {
         const result = await this._executeCommand(['show', '--details'], 5);
         const output = result.stdout + result.stderr;
-        
+
         if (!output || output.trim().length === 0) {
             throw new Error('No details available');
         }
 
         const details = {connected: false, portal: null, gateway: null, username: null, gatewayIp: null, assignedIp: null};
-        
+
         if (result.stdout) {
             const lines = result.stdout.split('\n');
             for (const line of lines) {
                 const trimmed = line.trim();
                 const lowerLine = trimmed.toLowerCase();
-                
+
                 if (lowerLine.includes('status:')) {
                     details.connected = trimmed.split(':')[1]?.trim().toLowerCase() === 'connected';
                 }
@@ -382,32 +382,32 @@ export class GlobalProtectClient {
     async rediscoverNetwork() {
         const result = await this._executeCommand(['rediscover-network'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
-        
+
         // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
-        
+
         if (output.toLowerCase().includes('successful') || output.toLowerCase().includes('success') || output.toLowerCase().includes('complete')) {
             return result.stdout || result.stderr || 'Network rediscovery completed';
         }
-        
+
         if (!result.success) {
             throw new Error(result.stderr || 'Network rediscovery failed');
         }
-        
+
         return result.stdout || 'Network rediscovery completed';
     }
 
     async resubmitHip(retryCount = 0) {
         const result = await this._executeCommand(['resubmit-hip'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
-        
+
         // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
-        
+
         if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
             if (retryCount < MAX_RETRY_COUNT) {
                 await this._delay(RETRY_DELAY_MS);
@@ -415,7 +415,7 @@ export class GlobalProtectClient {
             }
         }
 
-        if (output.toLowerCase().includes('successful') || output.toLowerCase().includes('success') || 
+        if (output.toLowerCase().includes('successful') || output.toLowerCase().includes('success') ||
             output.toLowerCase().includes('submitted') || output.toLowerCase().includes('complete')) {
             return result.stdout || result.stderr || 'HIP resubmission completed';
         }
@@ -434,12 +434,12 @@ export class GlobalProtectClient {
     async collectLog() {
         const result = await this._executeCommand(['collect-log'], COMMAND_TIMEOUT_LOG_COLLECTION);
         const output = result.stdout + result.stderr;
-        
+
         // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
-        
+
         if (output.toLowerCase().includes('complete') || output.toLowerCase().includes('collection complete') ||
             output.includes('.tgz') || output.includes('saved to') || output.includes('support file')) {
             const match = output.match(/saved to (.+\.tgz)/i);
@@ -456,10 +456,10 @@ export class GlobalProtectClient {
         try {
             const manualResult = await this._executeCommand(['show', '--manual-gateway'], 5);
             const detailsResult = await this._executeCommand(['show', '--details'], 5);
-            
+
             const gateways = [];
             const lines = (manualResult.stdout + manualResult.stderr).split('\n');
-            
+
             let currentGatewayName = null;
             const detailsLines = (detailsResult.stdout + detailsResult.stderr).split('\n');
             for (const line of detailsLines) {
@@ -472,24 +472,24 @@ export class GlobalProtectClient {
                     break;
                 }
             }
-            
+
             let inGatewayList = false;
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (trimmed === '' || trimmed.startsWith('Name')) continue;
-                
+
                 if (trimmed.startsWith('---')) {
                     inGatewayList = true;
                     continue;
                 }
-                
+
                 if (inGatewayList) {
                     const parts = trimmed.split(/\s+/);
                     if (parts.length >= 1) {
                         const name = parts[0];
                         const address = parts.length >= 2 ? parts[1] : name;
                         const preferred = parts.length >= 3 && parts[2].toLowerCase() === 'yes';
-                        
+
                         gateways.push({
                             name: name,
                             address: address,
@@ -499,7 +499,7 @@ export class GlobalProtectClient {
                     }
                 }
             }
-            
+
             return gateways;
         } catch (e) {
             console.error('Failed to get gateways:', e.message);
@@ -514,15 +514,15 @@ export class GlobalProtectClient {
 
         const result = await this._executeCommand(['set-preferred-gateway', gateway], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
-        
+
         if (output.toLowerCase().includes('success') || output.toLowerCase().includes('set')) {
             return `Preferred gateway set to ${gateway}`;
         }
-        
+
         if (!result.success) {
             throw new Error(result.stderr || 'Failed to set preferred gateway');
         }
-        
+
         return result.stdout || `Preferred gateway set to ${gateway}`;
     }
 
@@ -532,27 +532,27 @@ export class GlobalProtectClient {
         }
 
         if (statusCallback) {
-            const message = retryCount > 0 
-                ? `Retrying gateway connection (attempt ${retryCount + 1})...` 
+            const message = retryCount > 0
+                ? `Retrying gateway connection (attempt ${retryCount + 1})...`
                 : 'Connecting to gateway...';
             statusCallback('connecting', message);
         }
 
         const result = await this._executeCommand(['connect', '--gateway', gateway], COMMAND_TIMEOUT_MFA);
         const output = result.stdout + result.stderr;
-        
+
         if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
             if (retryCount < MAX_RETRY_COUNT) {
                 await this._delay(RETRY_DELAY_MS);
                 return this.connectToGateway(gateway, statusCallback, retryCount + 1);
             }
-            
+
             const status = await this.getStatus();
             if (status.connected) {
                 return {success: true, message: 'Already connected'};
             }
         }
-        
+
         const success = output.toLowerCase().includes('connected') || result.success;
 
         if (statusCallback) {
@@ -561,7 +561,7 @@ export class GlobalProtectClient {
 
         return {success: success, message: result.stdout || result.stderr || 'Connected to gateway'};
     }
-    
+
     /**
      * Check if output contains permission/ownership error
      * @param {string} output - Command output
@@ -595,18 +595,18 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['show', flag], COMMAND_TIMEOUT_SHOW);
         const output = result.stdout + result.stderr;
         const trimmedStdout = (result.stdout || '').trim();
-        
+
         // Check for permission errors only if no useful output
         if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
             throw new Error(PERMISSION_ERROR_MESSAGE);
         }
-        
+
         // Retry on retryable errors
         if (this._isRetryableError(output) && retryCount < MAX_RETRY_COUNT) {
             await this._delay(RETRY_DELAY_MS);
             return this._executeShowCommand(flag, defaultValue, retryCount + 1);
         }
-        
+
         return trimmedStdout || defaultValue;
     }
 
@@ -616,11 +616,11 @@ export class GlobalProtectClient {
 
     async getHostState(retryCount = 0) {
         const result = await this._executeShowCommand('--host-state', '', retryCount);
-        
+
         if (result.length === 0) {
             return 'No host state information available.\n\nThis may happen when:\n• VPN is not connected\n• GlobalProtect service is not running\n• Host state data is not available';
         }
-        
+
         return result;
     }
 
@@ -649,7 +649,7 @@ export class GlobalProtectClient {
         if (this._cancellable && !this._cancellable.is_cancelled()) {
             this._cancellable.cancel();
         }
-        
+
         // Remove all timeouts
         for (const timeoutId of this._timeoutIds) {
             try {
@@ -659,7 +659,7 @@ export class GlobalProtectClient {
             }
         }
         this._timeoutIds.clear();
-        
+
         // Don't create new cancellable - object is being destroyed
         this._cancellable = null;
     }
