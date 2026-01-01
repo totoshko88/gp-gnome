@@ -74,7 +74,7 @@ echo ""
 echo "glib-compile-schemas schemas/"
 echo "make uninstall && make install"
 echo "# Restart GNOME Shell"
-echo "gnome-extensions enable globalprotect@username.github.io"
+echo "gnome-extensions enable gp-gnome@totoshko88.github.io"
 echo ""
 echo "=========================================="
 

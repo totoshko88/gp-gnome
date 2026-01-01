@@ -13,6 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.6] - 2026-01-02
+
+### Added
+- **CI/CD**: GitHub Actions workflow for lint, tests, and EGO validation
+- **Security**: SECURITY.md with vulnerability reporting policy
+- **Preferences**: Full settings UI in GNOME Extensions preferences (prefs.js)
+
+### Fixed
+- **Tests**: Updated shell test scripts with correct extension UUID
+
+### Improved
+- **prefs.js**: Simplified with all settings (portal, username, SSL, poll interval)
+- **README**: Added CI badge
+
 ## [1.3.5] - 2026-01-01
 
 ### Fixed
