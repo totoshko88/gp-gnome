@@ -193,7 +193,7 @@ export class ErrorHandler {
 
         // If message is too long, truncate it
         if (message.length > 200) {
-            message = message.substring(0, 197) + '...';
+            message = `${message.substring(0, 197)}...`;
         }
 
         // Apply basic sanitization
