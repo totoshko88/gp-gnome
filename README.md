@@ -3,6 +3,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--49-blue.svg)](https://www.gnome.org/)
 [![Version](https://img.shields.io/badge/version-1.3.5-green.svg)](CHANGELOG.md)
+[![CI](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml/badge.svg)](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml)
 
 GNOME Shell extension for GlobalProtect VPN CLI integration. Native system tray indicator with full VPN management.
 
@@ -133,13 +134,10 @@ bash tests/validate-review-guidelines.sh
 
 ## Support
 
-☕ **Ko-Fi**: [ko-fi.com/totoshko88](https://ko-fi.com/totoshko88)  
-🇺🇦 **Monobank**: [send.monobank.ua/jar/2UgaGcQ3JC](https://send.monobank.ua/jar/2UgaGcQ3JC)
+[![Ko-Fi](https://img.shields.io/badge/Ko--Fi-Support-ff5e5b?logo=ko-fi)](https://ko-fi.com/totoshko88)
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal)](https://www.paypal.com/qrcodes/p2pqrc/JJLUXRZSQ5V3A)
+[![Monobank](https://img.shields.io/badge/Monobank-UAH-black?logo=monobank)](https://send.monobank.ua/jar/2UgaGcQ3JC)
 
 ## License
 
-GPL-3.0-or-later © 2025 Anton Isaiev
-
----
-
-**Issues**: [GitHub Issues](https://github.com/totoshko88/gp-gnome/issues) | **Email**: totoshko88@gmail.com
+GPL-3.0 — Made with ❤️ in Ukraine 🇺🇦
