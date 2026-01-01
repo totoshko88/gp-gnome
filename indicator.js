@@ -1021,7 +1021,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 if (logPath) {
                     this._showNotification('Log Collection', `Logs collected successfully.\nFile: ${logPath}\n\nFolder opened in file manager.`);
                 } else {
-                    this._showNotification('Log Collection', `Logs collected successfully.\n\nFolder opened: ~/.GlobalProtect/`);
+                    this._showNotification('Log Collection', 'Logs collected successfully.\n\nFolder opened: ~/.GlobalProtect/');
                 }
             } else {
                 // Folder doesn't exist
@@ -1458,28 +1458,28 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         try {
             const version = await this._gpClient.getVersion();
             const content = `${version}\n\n` +
-                `gp-gnome - GNOME Shell Extension\n` +
-                `Extension version: 1.3.6\n\n` +
-                `Description:\n` +
-                `GNOME Shell extension gp-gnome for GlobalProtect VPN CLI (PanGPLinux) integration.\n` +
-                `Provides complete VPN management with native GNOME integration,\n` +
-                `comprehensive functionality, and intelligent handling of known CLI issues.\n\n` +
-                `Designed for GlobalProtect CLI (also known as PanGPLinux) -\n` +
-                `the official Palo Alto Networks VPN client for Linux.\n\n` +
-                `Features:\n` +
-                `• Connect/disconnect with MFA support\n` +
-                `• Real-time connection monitoring\n` +
-                `• Gateway selection and switching\n` +
-                `• Interactive settings configuration\n` +
-                `• Advanced operations (HIP, logs, network rediscovery)\n` +
-                `• Automatic retry logic for CLI bugs\n` +
-                `• Auto-disconnect on logout\n` +
-                `• Native GNOME Shell integration\n\n` +
-                `Author: Anton Isaiev\n` +
-                `Email: totoshko88@gmail.com\n` +
-                `Repository: https://github.com/totoshko88/gp-gnome\n` +
-                `License: GPL-3.0-or-later\n\n` +
-                `© 2025 Anton Isaiev`;
+                'gp-gnome - GNOME Shell Extension\n' +
+                'Extension version: 1.3.6\n\n' +
+                'Description:\n' +
+                'GNOME Shell extension gp-gnome for GlobalProtect VPN CLI (PanGPLinux) integration.\n' +
+                'Provides complete VPN management with native GNOME integration,\n' +
+                'comprehensive functionality, and intelligent handling of known CLI issues.\n\n' +
+                'Designed for GlobalProtect CLI (also known as PanGPLinux) -\n' +
+                'the official Palo Alto Networks VPN client for Linux.\n\n' +
+                'Features:\n' +
+                '• Connect/disconnect with MFA support\n' +
+                '• Real-time connection monitoring\n' +
+                '• Gateway selection and switching\n' +
+                '• Interactive settings configuration\n' +
+                '• Advanced operations (HIP, logs, network rediscovery)\n' +
+                '• Automatic retry logic for CLI bugs\n' +
+                '• Auto-disconnect on logout\n' +
+                '• Native GNOME Shell integration\n\n' +
+                'Author: Anton Isaiev\n' +
+                'Email: totoshko88@gmail.com\n' +
+                'Repository: https://github.com/totoshko88/gp-gnome\n' +
+                'License: GPL-3.0-or-later\n\n' +
+                '© 2025 Anton Isaiev';
             this._showInfoDialog('About gp-gnome', content);
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to get version', {notify: true, log: true});
@@ -1647,7 +1647,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         this._timeoutIds.clear();
 
         // Disconnect all signals with validation
-        this._signalIds.forEach(({ obj, id }) => {
+        this._signalIds.forEach(({obj, id}) => {
             try {
                 if (obj && typeof obj.disconnect === 'function' && id) {
                     obj.disconnect(id);
