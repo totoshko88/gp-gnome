@@ -867,10 +867,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 infoItem.connect('activate', () => {
                     this._showNotification(
                         'Gateway Selection',
-                        'To see available gateways:\n\n' +
-                        '1. Connect to VPN first\n' +
-                        '2. Open this menu again to see all gateways\n' +
-                        '3. Click on a gateway to switch to it'
+                        'To see available gateways:\n\n1. Connect to VPN first\n2. Open this menu again to see all gateways\n3. Click on a gateway to switch to it'
                     );
                 });
                 this._gatewayMenu.menu.addMenuItem(infoItem);
@@ -1502,10 +1499,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Show confirmation
             this._showNotification(
                 'Clear Credentials',
-                'This will clear your saved credentials and disconnect from VPN.\n\n' +
-                'To proceed, run in terminal:\n' +
-                'globalprotect remove-user\n\n' +
-                'Note: This command requires confirmation (y/n)'
+                'This will clear your saved credentials and disconnect from VPN.\n\nTo proceed, run in terminal:\nglobalprotect remove-user\n\nNote: This command requires confirmation (y/n)'
             );
         } catch (e) {
             ErrorHandler.handle(e, 'Failed to clear credentials', {notify: true, log: true});
@@ -1581,7 +1575,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                     // Validate file exists
                     const file = Gio.File.new_for_path(certPath);
                     if (!file.query_exists(null)) {
-                        validationLabel.text = '❌ File not found: ' + certPath;
+                        validationLabel.text = `❌ File not found: ${certPath}`;
                         validationLabel.style = 'font-size: 10pt; color: #f66151; margin-top: 10px;';
                         return;
                     }
