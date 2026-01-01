@@ -25,6 +25,22 @@ jobs:
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
     
+    - name: Update version in source files
+      run: |
+        VERSION="${{ steps.get_version.outputs.VERSION }}"
+        
+        # Update version in indicator.js (_showAbout method)
+        sed -i "s/Extension version: [0-9]\+\.[0-9]\+\.[0-9]\+/Extension version: ${VERSION}/g" indicator.js
+        
+        # Update version in prefs.js (about section)
+        sed -i "s/Version [0-9]\+\.[0-9]\+\.[0-9]\+ |/Version ${VERSION} |/g" prefs.js
+        
+        # Verify changes
+        echo "=== indicator.js version ==="
+        grep -n "Extension version:" indicator.js || true
+        echo "=== prefs.js version ==="
+        grep -n "Version.*|" prefs.js || true
+    
     - name: Extract changelog for version
       id: changelog
       run: |

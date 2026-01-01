@@ -1,0 +1,3 @@
+# Translation files directory
+# Run: xgettext --from-code=UTF-8 --output=po/gp-gnome.pot *.js
+# to generate the POT template file

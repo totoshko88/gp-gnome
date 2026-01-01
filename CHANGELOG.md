@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.7] - 2026-01-02
+
+### Added
+- **CI/CD**: Automatic version update in release workflow - version in "Show → Version" dialog and preferences now auto-updates from git tag
+- **i18n**: Added gettext-domain to metadata.json for future localization support
+- **i18n**: Added gettext wrapper functions in prefs.js
+
+### Improved
+- **Release workflow**: Version strings in indicator.js and prefs.js are automatically updated during release build
+- **prefs.js**: Use Gio.Settings.bind() for automatic settings synchronization
+- **Makefile**: Added `make pot` target for generating translation templates
+
 ## [1.3.6] - 2026-01-02
 
 ### Added

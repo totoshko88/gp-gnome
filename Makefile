@@ -9,8 +9,9 @@ DIST_DIR = dist
 EXTENSION_FILES = extension.js prefs.js indicator.js gpClient.js statusMonitor.js errorHandler.js metadata.json stylesheet.css
 SCHEMA_FILES = schemas/org.gnome.shell.extensions.gp-gnome.gschema.xml
 ICON_FILES = icons/*.svg
+PO_DIR = po
 
-.PHONY: all install uninstall clean dist package test help
+.PHONY: all install uninstall clean dist package test help pot
 
 all: help
 
@@ -86,5 +87,10 @@ clean:
 	@echo "Cleaning build artifacts..."
 	@rm -rf $(BUILD_DIR) $(DIST_DIR)
 	@echo "Clean complete"
+
+pot:
+	@echo "Generating POT template..."
+	@xgettext --from-code=UTF-8 --output=$(PO_DIR)/$(EXTENSION_UUID).pot *.js
+	@echo "POT file created: $(PO_DIR)/$(EXTENSION_UUID).pot"
 
 .SILENT: install uninstall dist clean
