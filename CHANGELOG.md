@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **EGO Review compliance**: Removed dead code (unused session mode handler, unnecessary variable)
 - **EGO Review compliance**: Removed try-catch wrapper from enable() - GNOME Shell handles errors
 - **EGO Review compliance**: Replaced setTimeout with GLib.timeout_add for proper cleanup on destroy
+- **Auto-disconnect order**: VPN now disconnects FIRST on disable to ensure logout disconnects work
+
+### Improved
+- **Code refactoring**: Extracted retry logic and permission checks into reusable helper methods
+- **Poll interval**: Settings changes now apply immediately without extension restart
+- **Constants**: Centralized error patterns and messages for better maintainability
 
 ## [1.3.3] - 2025-12-02
 

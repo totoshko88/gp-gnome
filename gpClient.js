@@ -27,8 +27,27 @@ import GLib from 'gi://GLib';
 const COMMAND_TIMEOUT_DEFAULT = 10;
 const COMMAND_TIMEOUT_MFA = 30;
 const COMMAND_TIMEOUT_LOG_COLLECTION = 60;
+const COMMAND_TIMEOUT_SHOW = 5;
 const RETRY_DELAY_MS = 1000;
 const MAX_RETRY_COUNT = 2;
+
+// CLI error patterns that trigger retry
+const RETRYABLE_ERROR_PATTERNS = [
+    'already established',
+    'Unable to establish a new GlobalProtect connection'
+];
+
+// Permission error patterns
+const PERMISSION_ERROR_PATTERNS = [
+    'another user',
+    'different user',
+    'owned by',
+    'permission denied',
+    'same user or another user'
+];
+
+// Permission error message
+const PERMISSION_ERROR_MESSAGE = 'GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.';
 
 /**
  * GlobalProtect CLI client wrapper
@@ -542,26 +561,6 @@ export class GlobalProtectClient {
 
         return {success: success, message: result.stdout || result.stderr || 'Connected to gateway'};
     }
-
-    async getVersion(retryCount = 0) {
-        const result = await this._executeCommand(['show', '--version'], 5);
-        const output = result.stdout + result.stderr;
-        const trimmedStdout = (result.stdout || '').trim();
-        
-        // Check for permission/ownership errors - only if no useful output
-        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
-            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
-        }
-        
-        if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
-            if (retryCount < MAX_RETRY_COUNT) {
-                await this._delay(RETRY_DELAY_MS);
-                return this.getVersion(retryCount + 1);
-            }
-        }
-        
-        return trimmedStdout || 'Version unknown';
-    }
     
     /**
      * Check if output contains permission/ownership error
@@ -571,96 +570,70 @@ export class GlobalProtectClient {
      */
     _isPermissionError(output) {
         const lowerOutput = output.toLowerCase();
-        return lowerOutput.includes('another user') ||
-               lowerOutput.includes('different user') ||
-               lowerOutput.includes('owned by') ||
-               lowerOutput.includes('permission denied') ||
-               lowerOutput.includes('same user or another user');
+        return PERMISSION_ERROR_PATTERNS.some(pattern => lowerOutput.includes(pattern));
+    }
+
+    /**
+     * Check if output contains retryable error
+     * @param {string} output - Command output
+     * @returns {boolean}
+     * @private
+     */
+    _isRetryableError(output) {
+        return RETRYABLE_ERROR_PATTERNS.some(pattern => output.includes(pattern));
+    }
+
+    /**
+     * Execute show command with retry and permission check
+     * @param {string} flag - Show command flag (e.g., '--version')
+     * @param {string} defaultValue - Default value if empty
+     * @param {number} retryCount - Internal retry counter
+     * @returns {Promise<string>}
+     * @private
+     */
+    async _executeShowCommand(flag, defaultValue, retryCount = 0) {
+        const result = await this._executeCommand(['show', flag], COMMAND_TIMEOUT_SHOW);
+        const output = result.stdout + result.stderr;
+        const trimmedStdout = (result.stdout || '').trim();
+        
+        // Check for permission errors only if no useful output
+        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
+            throw new Error(PERMISSION_ERROR_MESSAGE);
+        }
+        
+        // Retry on retryable errors
+        if (this._isRetryableError(output) && retryCount < MAX_RETRY_COUNT) {
+            await this._delay(RETRY_DELAY_MS);
+            return this._executeShowCommand(flag, defaultValue, retryCount + 1);
+        }
+        
+        return trimmedStdout || defaultValue;
     }
 
     async getErrors(retryCount = 0) {
-        const result = await this._executeCommand(['show', '--error'], 5);
-        const output = result.stdout + result.stderr;
-        const trimmedStdout = (result.stdout || '').trim();
-        
-        // Check for permission/ownership errors - only if no useful output
-        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
-            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
-        }
-        
-        if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
-            if (retryCount < MAX_RETRY_COUNT) {
-                await this._delay(RETRY_DELAY_MS);
-                return this.getErrors(retryCount + 1);
-            }
-        }
-        
-        return trimmedStdout || 'No errors';
+        return this._executeShowCommand('--error', 'No errors', retryCount);
     }
 
     async getHostState(retryCount = 0) {
-        const result = await this._executeCommand(['show', '--host-state'], 5);
-        const output = result.stdout + result.stderr;
-        const trimmedOutput = (result.stdout || '').trim();
+        const result = await this._executeShowCommand('--host-state', '', retryCount);
         
-        // Check for permission/ownership errors - only if output is empty and contains error text
-        if (trimmedOutput.length === 0 && this._isPermissionError(output)) {
-            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
-        }
-        
-        if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
-            if (retryCount < MAX_RETRY_COUNT) {
-                await this._delay(RETRY_DELAY_MS);
-                return this.getHostState(retryCount + 1);
-            }
-        }
-        
-        // Check if output is empty or only whitespace
-        if (trimmedOutput.length === 0) {
+        if (result.length === 0) {
             return 'No host state information available.\n\nThis may happen when:\n• VPN is not connected\n• GlobalProtect service is not running\n• Host state data is not available';
         }
         
-        return trimmedOutput;
+        return result;
     }
 
     async getNotifications(retryCount = 0) {
-        const result = await this._executeCommand(['show', '--notifications'], 5);
-        const output = result.stdout + result.stderr;
-        const trimmedStdout = (result.stdout || '').trim();
-        
-        // Check for permission/ownership errors - only if no useful output
-        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
-            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
-        }
-        
-        if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
-            if (retryCount < MAX_RETRY_COUNT) {
-                await this._delay(RETRY_DELAY_MS);
-                return this.getNotifications(retryCount + 1);
-            }
-        }
-        
-        return trimmedStdout || 'No notifications';
+        return this._executeShowCommand('--notifications', 'No notifications', retryCount);
     }
 
     async getHelp(retryCount = 0) {
-        const result = await this._executeCommand(['show', '--help'], 5);
-        const output = result.stdout + result.stderr;
-        const trimmedStdout = (result.stdout || '').trim();
-        
-        // Check for permission/ownership errors - only if no useful output
-        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
-            throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
-        }
-        
-        if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
-            if (retryCount < MAX_RETRY_COUNT) {
-                await this._delay(RETRY_DELAY_MS);
-                return this.getHelp(retryCount + 1);
-            }
-        }
-        
-        return trimmedStdout || 'No help available';
+        return this._executeShowCommand('--help', 'No help available', retryCount);
+    }
+
+    async getVersion(retryCount = 0) {
+        return this._executeShowCommand('--version', 'Version unknown', retryCount);
     }
 
     extractLogFilePath(output) {

@@ -44,15 +44,46 @@ export const StatusMonitor = GObject.registerClass({
         this._currentStatus = null;
         this._pollInterval = 5000; // Default 5 seconds in milliseconds
         this._isStopped = false; // Flag to prevent polling after stop
+        this._settingsChangedId = null;
         
         // Debounce counter for disconnect events
         // Prevents false disconnects when CLI temporarily reports wrong status
         this._disconnectDebounceCount = 0;
         this._disconnectDebounceThreshold = 2; // Require 2 consecutive disconnected polls
         
-        // Read poll interval from settings if available
+        // Read poll interval from settings and connect to changes
         if (this._settings) {
             this._pollInterval = this._settings.get_int('poll-interval') * 1000;
+            this._settingsChangedId = this._settings.connect('changed::poll-interval', () => {
+                this._onPollIntervalChanged();
+            });
+        }
+    }
+
+    /**
+     * Handle poll interval setting change
+     * Restarts polling with new interval
+     * @private
+     */
+    _onPollIntervalChanged() {
+        if (!this._settings) return;
+        
+        const newInterval = this._settings.get_int('poll-interval') * 1000;
+        if (newInterval === this._pollInterval) return;
+        
+        this._pollInterval = newInterval;
+        
+        // Restart polling with new interval if currently running
+        if (this._timeoutId && !this._isStopped) {
+            GLib.source_remove(this._timeoutId);
+            this._timeoutId = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                this._pollInterval,
+                () => {
+                    this._poll();
+                    return GLib.SOURCE_CONTINUE;
+                }
+            );
         }
     }
 
@@ -82,7 +113,7 @@ export const StatusMonitor = GObject.registerClass({
 
     /**
      * Stop monitoring VPN status
-     * Cleans up the polling timeout
+     * Cleans up the polling timeout and settings listener
      */
     stop() {
         this._isStopped = true;
@@ -90,6 +121,12 @@ export const StatusMonitor = GObject.registerClass({
         if (this._timeoutId) {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = null;
+        }
+        
+        // Disconnect settings listener
+        if (this._settingsChangedId && this._settings) {
+            this._settings.disconnect(this._settingsChangedId);
+            this._settingsChangedId = null;
         }
     }
 

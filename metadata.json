@@ -8,7 +8,10 @@
   "settings-schema": "org.gnome.shell.extensions.gp-gnome",
   "donations": {
     "kofi": "totoshko88",
-    "paypal": "totoshko88@gmail.com",
-    "custom": ["https://send.monobank.ua/jar/2UgaGcQ3JC"]
+    "paypal": "totoshko88",
+    "custom": [
+      "https://send.monobank.ua/jar/2UgaGcQ3JC",
+      "https://link.payoneer.com/Token?t=135B68D8EB1E4860B4B632ECD755182F&src=pl"
+    ]
   }
 }

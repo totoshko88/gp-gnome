@@ -7,7 +7,13 @@ GNOME Shell extension for GlobalProtect VPN CLI (PanGPLinux) integration.
 ### Fixed (EGO Review Compliance)
 - **Dead code removal**: Removed unused session mode handler and unnecessary variable
 - **Enable error handling**: Removed try-catch wrapper from enable() - GNOME Shell handles errors natively
-- **Timeout cleanup**: Replaced setTimeout with GLib.timeout_add for proper cleanup on destroy per [EGO Review Guidelines](https://gjs.guide/extensions/review-guidelines/review-guidelines.html#remove-main-loop-sources)
+- **Timeout cleanup**: Replaced setTimeout with GLib.timeout_add for proper cleanup on destroy
+- **Auto-disconnect order**: VPN now disconnects FIRST on disable to ensure logout disconnects work
+
+### Improved
+- **Code refactoring**: Extracted retry logic and permission checks into reusable helper methods
+- **Poll interval**: Settings changes now apply immediately without extension restart
+- **Constants**: Centralized error patterns and messages for better maintainability
 
 ## Installation
 

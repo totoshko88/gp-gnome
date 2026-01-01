@@ -76,31 +76,35 @@ export default class GlobalProtectExtension extends Extension {
     /**
      * Disable the extension
      * Cleans up all resources and removes indicator from panel
-     * Resources are cleaned up in reverse order of creation
+     * Auto-disconnect runs FIRST to ensure VPN disconnects on logout
      */
     disable() {
-        // 1. Stop monitoring (prevents new operations)
+        // 1. Auto-disconnect FIRST - ensures VPN disconnects on logout/lock
+        try {
+            GLib.spawn_command_line_async('globalprotect disconnect');
+        } catch (e) {
+            // Ignore - VPN might already be disconnected
+        }
+        
+        // 2. Stop monitoring (prevents new operations)
         if (this._statusMonitor) {
             this._statusMonitor.stop();
             this._statusMonitor = null;
         }
         
-        // 2. Cancel ongoing operations in gpClient BEFORE destroying indicator
+        // 3. Cancel ongoing operations in gpClient
         if (this._gpClient) {
             this._gpClient.destroy();
             this._gpClient = null;
         }
         
-        // 3. Destroy UI last (after all async operations are cancelled)
+        // 4. Destroy UI last
         if (this._indicator) {
             this._indicator.destroy();
             this._indicator = null;
         }
         
-        // 4. Clear settings
+        // 5. Clear settings
         this._settings = null;
-        
-        // 5. Auto-disconnect on logout - spawn async at the end
-        GLib.spawn_command_line_async('globalprotect disconnect');
     }
 }
