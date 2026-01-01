@@ -101,7 +101,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             'status-changed',
             this._onStatusChanged.bind(this)
         );
-        this._signalIds.push({ obj: this._statusMonitor, id: statusChangedId });
+        this._signalIds.push({obj: this._statusMonitor, id: statusChangedId});
 
         // Initial status update
         const currentStatus = this._statusMonitor.getCurrentStatus();
@@ -740,81 +740,81 @@ class GlobalProtectIndicator extends PanelMenu.Button {
     _changePortal() {
         const currentPortal = this._settings.get_string('portal-address');
 
-            // Create modal dialog
-            const dialog = new ModalDialog.ModalDialog();
+        // Create modal dialog
+        const dialog = new ModalDialog.ModalDialog();
 
-            // Add title
-            const titleLabel = new St.Label({
-                text: 'Change Portal',
-                style_class: 'headline',
-                x_align: Clutter.ActorAlign.CENTER
-            });
-            dialog.contentLayout.add_child(titleLabel);
+        // Add title
+        const titleLabel = new St.Label({
+            text: 'Change Portal',
+            style_class: 'headline',
+            x_align: Clutter.ActorAlign.CENTER
+        });
+        dialog.contentLayout.add_child(titleLabel);
 
-            // Add content box
-            const contentBox = new St.BoxLayout({
-                vertical: true,
-                style: 'padding: 20px; spacing: 15px; min-width: 500px;'
-            });
+        // Add content box
+        const contentBox = new St.BoxLayout({
+            vertical: true,
+            style: 'padding: 20px; spacing: 15px; min-width: 500px;'
+        });
 
-            // Current portal label
-            const currentLabel = new St.Label({
-                text: `Current portal: ${currentPortal}`,
-                style: 'font-size: 11pt; color: #ffffff;'
-            });
-            contentBox.add_child(currentLabel);
+        // Current portal label
+        const currentLabel = new St.Label({
+            text: `Current portal: ${currentPortal}`,
+            style: 'font-size: 11pt; color: #ffffff;'
+        });
+        contentBox.add_child(currentLabel);
 
-            // New portal label
-            const newLabel = new St.Label({
-                text: 'New portal address:',
-                style: 'font-size: 11pt; color: #ffffff; margin-top: 10px;'
-            });
-            contentBox.add_child(newLabel);
+        // New portal label
+        const newLabel = new St.Label({
+            text: 'New portal address:',
+            style: 'font-size: 11pt; color: #ffffff; margin-top: 10px;'
+        });
+        contentBox.add_child(newLabel);
 
-            // Portal input field
-            const portalEntry = new St.Entry({
-                text: currentPortal,
-                hint_text: 'vpn.example.com',
-                style: 'font-size: 11pt; padding: 8px; min-width: 400px;',
-                can_focus: true
-            });
-            contentBox.add_child(portalEntry);
+        // Portal input field
+        const portalEntry = new St.Entry({
+            text: currentPortal,
+            hint_text: 'vpn.example.com',
+            style: 'font-size: 11pt; padding: 8px; min-width: 400px;',
+            can_focus: true
+        });
+        contentBox.add_child(portalEntry);
 
-            // Info label
-            const infoLabel = new St.Label({
-                text: 'After changing, reconnect to VPN.',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 10px;'
-            });
-            contentBox.add_child(infoLabel);
+        // Info label
+        const infoLabel = new St.Label({
+            text: 'After changing, reconnect to VPN.',
+            style: 'font-size: 10pt; color: #aaaaaa; margin-top: 10px;'
+        });
+        contentBox.add_child(infoLabel);
 
-            dialog.contentLayout.add_child(contentBox);
+        dialog.contentLayout.add_child(contentBox);
 
-            // Add Save button
-            dialog.addButton({
-                label: 'Save',
-                action: () => {
-                    const newPortal = portalEntry.get_text();
-                    if (newPortal && newPortal !== currentPortal) {
-                        this._settings.set_string('portal-address', newPortal);
-                        this._showNotification('Portal Changed', `Portal set to: ${newPortal}\n\nReconnect to VPN to use new portal.`);
-                    }
-                    dialog.close();
-                },
-                key: Clutter.KEY_Return
-            });
+        // Add Save button
+        dialog.addButton({
+            label: 'Save',
+            action: () => {
+                const newPortal = portalEntry.get_text();
+                if (newPortal && newPortal !== currentPortal) {
+                    this._settings.set_string('portal-address', newPortal);
+                    this._showNotification('Portal Changed', `Portal set to: ${newPortal}\n\nReconnect to VPN to use new portal.`);
+                }
+                dialog.close();
+            },
+            key: Clutter.KEY_Return
+        });
 
-            // Add Cancel button
-            dialog.addButton({
-                label: 'Cancel',
-                action: () => {
-                    dialog.close();
-                },
-                key: Clutter.KEY_Escape
-            });
+        // Add Cancel button
+        dialog.addButton({
+            label: 'Cancel',
+            action: () => {
+                dialog.close();
+            },
+            key: Clutter.KEY_Escape
+        });
 
-            // Open dialog and focus input
-            dialog.open();
-            global.stage.set_key_focus(portalEntry);
+        // Open dialog and focus input
+        dialog.open();
+        global.stage.set_key_focus(portalEntry);
     }
 
     /**
