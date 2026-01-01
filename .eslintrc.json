@@ -9,7 +9,9 @@
   },
   "rules": {
     "indent": ["error", 4, {
-      "SwitchCase": 1
+      "SwitchCase": 1,
+      "CallExpression": {"arguments": "off"},
+      "ignoredNodes": ["CallExpression > ClassExpression.arguments"]
     }],
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single", {
