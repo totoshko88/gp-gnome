@@ -1,25 +1,47 @@
+---
+inclusion: always
+---
+
 # Product Overview
 
-GNOME GlobalProtect Extension is a native GNOME Shell extension that provides full-featured GlobalProtect VPN CLI integration. It offers complete VPN management with native GNOME integration, comprehensive functionality, and intelligent handling of known GlobalProtect CLI issues.
+gp-gnome is a native GNOME Shell extension providing GlobalProtect VPN CLI (PanGPLinux) integration via a system tray indicator.
 
 ## Core Purpose
 
-Provides a system tray indicator and UI for managing GlobalProtect VPN connections directly from the GNOME Shell desktop environment, eliminating the need to use command-line tools manually.
+Replace manual CLI usage with a graphical interface for managing GlobalProtect VPN connections directly from the GNOME Shell panel.
 
-## Key Features
+## Key Capabilities
 
-- Connect/disconnect VPN with MFA (Multi-Factor Authentication) support
-- Real-time status monitoring with configurable polling
-- Gateway selection and switching with caching
-- Interactive settings dialogs for configuration
-- Advanced operations (HIP resubmission, log collection, network rediscovery)
-- Automatic retry logic for known GlobalProtect CLI bugs
-- Auto-disconnect on logout for security
-- Native GNOME Shell integration with custom icons
+- Connect/disconnect with MFA (SAML/browser-based authentication) support
+- Real-time status monitoring with configurable polling intervals
+- Gateway selection, switching, and preferred gateway configuration
+- Advanced operations: HIP resubmission, log collection, network rediscovery
+- Automatic retry logic for known GlobalProtect CLI bugs ("already established" errors)
+- Auto-disconnect on extension disable (logout/lock security)
+- Custom SVG status icons (on, off, connecting, error)
 
-## Target Users
+## Target Environment
 
-Linux users running GNOME Shell (versions 45-49) who need to connect to GlobalProtect VPN and prefer a graphical interface over command-line tools.
+- GNOME Shell versions 45-49
+- GlobalProtect CLI (PanGPLinux) installed at `/usr/bin/globalprotect` or `/opt/paloaltonetworks/globalprotect/globalprotect`
+- Linux desktop users preferring GUI over CLI
+
+## Extension Behavior
+
+- All VPN operations are async using Gio.Subprocess
+- Status polling via GLib.timeout with configurable intervals
+- Settings stored in GSettings (org.gnome.shell.extensions.gp-gnome)
+- No GTK imports in extension.js (only allowed in prefs.js)
+- All components created in enable(), destroyed in disable()
+- No global state outside extension instance
+
+## User-Facing Features
+
+- Panel indicator with status icon
+- Dropdown menu: Connect/Disconnect, Gateway selection, Advanced operations, Settings
+- Modal dialogs for: Host state, Errors, Notifications, Help, Version info
+- Copy-to-clipboard functionality in info dialogs
+- Notification throttling to prevent spam
 
 ## License
 

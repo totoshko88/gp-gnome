@@ -1,66 +1,74 @@
+---
+inclusion: always
+---
+
 # Technology Stack
 
-## Platform
+## Platform Requirements
 
-- **GNOME Shell**: 45, 46, 47, 48, 49
-- **Language**: JavaScript (GJS - GNOME JavaScript bindings)
-- **Runtime**: GJS (GNOME JavaScript runtime)
+- GNOME Shell: 45, 46, 47, 48, 49
+- Language: JavaScript (GJS - GNOME JavaScript bindings)
+- Runtime: GJS (GNOME JavaScript runtime)
+- Extension UUID: `gp-gnome@totoshko88.github.io`
 
-## Core Technologies
+## Core Libraries
 
-- **GJS/GObject Introspection**: For GNOME Shell extension development
-- **Gio**: Async subprocess execution and file operations
-- **GLib**: Utilities, timeouts, and event loop integration
-- **GSettings**: Configuration storage via GSchema
+| Library | Usage |
+|---------|-------|
+| GJS/GObject | Extension class registration, signal handling |
+| Gio | Async subprocess (`Gio.Subprocess`), file I/O, cancellables |
+| GLib | Timeouts (`GLib.timeout_add`), event loop, utilities |
+| GSettings | User preferences via compiled GSchema |
+
+## GJS Code Conventions
+
+- Use ES modules with `import` statements (not `require`)
+- Import GNOME libraries: `import Gio from 'gi://Gio'`
+- Import extension resources: `import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js'`
+- Register classes with `GObject.registerClass()` for Shell integration
+- Use `console.info()` / `console.error()` for logging (prefix: `gp-gnome:`)
+
+## Async Patterns
+
+- All subprocess calls MUST use `Gio.Subprocess` with `communicate_utf8_async`
+- Never use blocking/synchronous subprocess calls
+- Always implement timeout handling with `GLib.timeout_add`
+- Use cancellables (`Gio.Cancellable`) for long-running operations
 
 ## Testing
 
-- **Jasmine**: Unit testing framework
-- **fast-check**: Property-based testing library
-- **Manual testing**: Shell scripts for integration testing
+| Type | Framework | Command |
+|------|-----------|---------|
+| Unit | Jasmine | `make test-unit` or `npm run test:unit` |
+| Property-based | fast-check + Jasmine | `make test-props` or `npm run test:properties` |
+| All tests | - | `make test` or `npm test` |
+| Linting | ESLint | `npm run lint` |
 
-## Build System
-
-Uses **Make** for build automation and **glib-compile-schemas** for GSettings schema compilation.
-
-## Common Commands
+## Build Commands
 
 ```bash
-# Install extension to user directory
-make install
-
-# Uninstall extension
-make uninstall
-
-# Create distribution package
-make dist
-
-# Run all tests
-make test
-
-# Run unit tests only
-make test-unit
-
-# Run property-based tests only
-make test-props
-
-# Enable extension
-gnome-extensions enable globalprotect@username.github.io
-
-# Restart GNOME Shell (X11 only)
-# Press Alt+F2, type 'r', press Enter
-
-# View logs
-journalctl -f -o cat /usr/bin/gnome-shell | grep -i globalprotect
+make install      # Install to ~/.local/share/gnome-shell/extensions/
+make uninstall    # Remove extension
+make dist         # Create zip for distribution
+make clean        # Remove build artifacts
 ```
 
 ## Dependencies
 
-- **GlobalProtect CLI**: Must be installed and available in PATH (`/usr/bin/globalprotect` or `/opt/paloaltonetworks/globalprotect/globalprotect`)
-- **glib-compile-schemas**: For compiling GSettings schemas
-- **zip**: For creating distribution packages
+- GlobalProtect CLI at `/usr/bin/globalprotect` or `/opt/paloaltonetworks/globalprotect/globalprotect`
+- `glib-compile-schemas` for GSettings compilation
+- `zip` for distribution packages
+- Node.js + npm for test dependencies
 
-## Development Tools
+## Debugging
 
-- **gjs**: For running tests outside GNOME Shell
-- **gnome-extensions**: CLI tool for managing extensions
+```bash
+# View extension logs (filter by extension name)
+journalctl -f -o cat /usr/bin/gnome-shell | grep -i globalprotect
+
+# Enable extension
+gnome-extensions enable gp-gnome@totoshko88.github.io
+
+# Restart GNOME Shell (X11 only): Alt+F2 → 'r' → Enter
+# Wayland: Log out and back in
+```

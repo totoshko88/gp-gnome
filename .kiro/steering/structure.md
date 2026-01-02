@@ -1,64 +1,63 @@
+---
+inclusion: always
+---
+
 # Project Structure
 
-## Root Files
+## Core Modules
 
-- **extension.js**: Main extension class, lifecycle management (enable/disable)
-- **prefs.js**: Preferences UI (GTK allowed here, not in extension.js)
-- **indicator.js**: System tray indicator UI component
-- **gpClient.js**: GlobalProtect CLI wrapper with async operations
-- **statusMonitor.js**: Periodic VPN status polling
-- **errorHandler.js**: Centralized error handling with sanitization
-- **metadata.json**: Extension metadata (UUID, version, shell compatibility)
-- **stylesheet.css**: UI styling
-- **Makefile**: Build automation
+| File | Purpose | Key Patterns |
+|------|---------|--------------|
+| `extension.js` | Lifecycle management (`enable`/`disable`) | Creates all components in `enable()`, destroys in `disable()`. Auto-disconnects VPN on disable. |
+| `indicator.js` | Panel UI (GObject.registerClass) | Extends `PanelMenu.Button`. Manages menu, dialogs, state transitions. |
+| `gpClient.js` | CLI wrapper (async subprocess) | Uses `Gio.Subprocess` with timeouts and cancellation. Implements retry logic. |
+| `statusMonitor.js` | Polling service (GObject signals) | Emits `status-changed` signal. Debounces disconnect events. |
+| `errorHandler.js` | Error handling utility | Static methods. Sanitizes sensitive data. Maps errors to user messages. |
+| `prefs.js` | Preferences UI | GTK allowed here only. Opens via GNOME Extensions app. |
+
+## Architecture Rules
+
+1. **No GTK in extension.js** - GTK imports only allowed in `prefs.js`
+2. **No global state** - All state lives in extension instance, created in `enable()`, destroyed in `disable()`
+3. **All CLI operations async** - Use `Gio.Subprocess` with `communicate_utf8_async`, never blocking calls
+4. **Signal cleanup required** - Track all signal connections and disconnect in `destroy()`
+5. **Timeout cleanup required** - Track all `GLib.timeout_add` IDs and remove in `destroy()`
+
+## Component Dependencies
+
+```
+Extension
+├── creates → GlobalProtectClient (gpClient.js)
+├── creates → StatusMonitor (statusMonitor.js)
+└── creates → GlobalProtectIndicator (indicator.js)
+                ├── uses → GlobalProtectClient
+                ├── uses → StatusMonitor
+                └── uses → ErrorHandler (static)
+```
 
 ## Configuration
 
-- **schemas/**: GSettings schema definitions
-  - `org.gnome.shell.extensions.globalprotect.gschema.xml`: Settings schema
-  - `gschemas.compiled`: Compiled schema (generated)
+- `schemas/org.gnome.shell.extensions.gp-gnome.gschema.xml` - GSettings schema
+- `metadata.json` - Extension UUID, version, GNOME Shell compatibility
 
 ## Assets
 
-- **icons/**: Custom state icons
-  - `on.png`: Connected state
-  - `off.png`: Disconnected state
-  - `connecting.png`: Transitioning state
-  - `error.png`: Error state
+- `icons/*.svg` - State icons: `on.svg`, `off.svg`, `connecting.svg`, `error.svg`
+- `stylesheet.css` - UI styling classes
 
 ## Testing
 
-- **tests/**: Test suites
-  - `run-unit-tests.js`: Unit test runner
-  - `run-property-tests.js`: Property-based test runner
-  - `properties/`: Property-based tests (Jasmine + fast-check)
-  - `mocks/`: GNOME API mocks for testing
-  - `spec/`: Test configuration
-  - `*.sh`: Integration and validation test scripts
+- `tests/run-unit-tests.js` - Unit test runner (Jasmine)
+- `tests/run-property-tests.js` - Property-based tests (fast-check)
+- `tests/properties/` - Property-based test specs
+- `tests/mocks/gnome-mocks.js` - GNOME API mocks for testing outside Shell
+- `tests/*.sh` - Integration/validation shell scripts
 
-## Documentation
+## Code Conventions
 
-- **docs/development/**: Development notes and implementation history
-- **docs/screenshots/**: UI screenshots for README
-- **README.md**: Main documentation
-- **CONTRIBUTING.md**: Contribution guidelines
-- **CHANGELOG.md**: Version history
-- **MANUAL_TESTING_GUIDE.md**: Manual testing procedures
-
-## Scripts
-
-- **install.sh**: Quick installation script
-- **uninstall.sh**: Uninstallation script
-- **test-*.sh**: Feature-specific test scripts
-
-## Architecture Pattern
-
-The extension follows a modular, separation-of-concerns architecture:
-
-1. **Extension** (extension.js): Lifecycle management only
-2. **GlobalProtectClient** (gpClient.js): CLI command wrapper, all async
-3. **StatusMonitor** (statusMonitor.js): Polling logic, state management
-4. **GlobalProtectIndicator** (indicator.js): UI rendering, user interactions
-5. **ErrorHandler** (errorHandler.js): Centralized error handling
-
-All components are created in `enable()` and cleaned up in `disable()`. No global state is maintained outside the extension instance.
+- Use `console.info()` for debug logging with `gp-gnome:` prefix
+- Use `console.error()` for errors
+- Prefix private methods with `_`
+- Track timeouts in `Set` for cleanup: `this._timeoutIds`
+- Track signals in array for cleanup: `this._signalIds`
+- Check `this._isDestroyed` before async callback execution
