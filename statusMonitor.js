@@ -61,6 +61,34 @@ export const StatusMonitor = GObject.registerClass({
     }
 
     /**
+     * Start or restart the polling timeout with current interval
+     * Helper function to avoid duplicate timeout creation code
+     * @private
+     */
+    _startPollingTimeout() {
+        // Remove existing timeout if any
+        if (this._timeoutId) {
+            GLib.source_remove(this._timeoutId);
+            this._timeoutId = null;
+        }
+
+        // Don't start if stopped
+        if (this._isStopped) {
+            return;
+        }
+
+        // Create new timeout
+        this._timeoutId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            this._pollInterval,
+            () => {
+                this._poll();
+                return GLib.SOURCE_CONTINUE;
+            }
+        );
+    }
+
+    /**
      * Handle poll interval setting change
      * Restarts polling with new interval
      * @private
@@ -75,15 +103,7 @@ export const StatusMonitor = GObject.registerClass({
 
         // Restart polling with new interval if currently running
         if (this._timeoutId && !this._isStopped) {
-            GLib.source_remove(this._timeoutId);
-            this._timeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                this._pollInterval,
-                () => {
-                    this._poll();
-                    return GLib.SOURCE_CONTINUE;
-                }
-            );
+            this._startPollingTimeout();
         }
     }
 
@@ -97,18 +117,13 @@ export const StatusMonitor = GObject.registerClass({
             return;
         }
 
+        this._isStopped = false;
+
         // Do initial poll immediately
         this._poll();
 
         // Set up periodic polling
-        this._timeoutId = GLib.timeout_add(
-            GLib.PRIORITY_DEFAULT,
-            this._pollInterval,
-            () => {
-                this._poll();
-                return GLib.SOURCE_CONTINUE;
-            }
-        );
+        this._startPollingTimeout();
     }
 
     /**
