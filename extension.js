@@ -88,7 +88,7 @@ export default class GlobalProtectExtension extends Extension {
 
         // 2. Stop monitoring (prevents new operations)
         if (this._statusMonitor) {
-            this._statusMonitor.stop();
+            this._statusMonitor.destroy();
             this._statusMonitor = null;
         }
 

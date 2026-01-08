@@ -146,6 +146,13 @@ export const StatusMonitor = GObject.registerClass({
     }
 
     /**
+     * Destroy the monitor and clean up all resources
+     */
+    destroy() {
+        this.stop();
+    }
+
+    /**
      * Force immediate status update (public method)
      * @returns {Promise<void>}
      */

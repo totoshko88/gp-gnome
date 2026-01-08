@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.3.9] - 2026-01-06
+
+### Fixed
+- **EGO Review**: Added `destroy()` method to StatusMonitor class for proper cleanup
+
 ## [1.3.8] - 2026-01-04
 
 ### Fixed
