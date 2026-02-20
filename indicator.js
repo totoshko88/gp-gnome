@@ -35,7 +35,6 @@ import {ErrorHandler} from './errorHandler.js';
 // Constants for delays and timeouts
 const STATUS_UPDATE_DELAY_MS = 300;
 const DISCONNECT_WAIT_MS = 500;
-const GATEWAY_SWITCH_DISCONNECT_WAIT_MS = 2000;
 const ERROR_ICON_RESET_DELAY_MS = 3000;
 const NOTIFICATION_MIN_INTERVAL_MS = 2000;
 
@@ -958,16 +957,23 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Show notification that we're switching
             this._showNotification('Switching Gateway', `Switching to ${gateway}...`);
 
-            // If connected, disconnect first
+            // If connected, disconnect first and wait until actually disconnected
             if (currentStatus && currentStatus.connected) {
                 await this._gpClient.disconnect();
-                // Wait a bit for disconnect to complete
-                await this._delay(GATEWAY_SWITCH_DISCONNECT_WAIT_MS);
+
+                // Poll status until actually disconnected (max ~15s)
+                const disconnected = await this._gpClient.waitForDisconnect();
+                if (this._isDestroyed) return;
+
+                if (!disconnected) {
+                    throw new Error('Could not disconnect before switching gateway. Please try again.');
+                }
             }
 
-            // Connect directly to the selected gateway using --gateway flag
-            // This ensures we connect to the SELECTED gateway, not the first one
-            await this._gpClient.connectToGateway(gateway);
+            // Connect to the selected gateway with portal address
+            const portal = this._settings.get_string('portal-address');
+            const username = this._settings.get_string('username');
+            await this._gpClient.connectToGateway(gateway, null, 0, portal, username || null);
 
             // Invalidate caches to refresh on next open
             this._gatewayListCache = null;
@@ -1459,7 +1465,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             const version = await this._gpClient.getVersion();
             const content = `${version}\n\n` +
                 'gp-gnome - GNOME Shell Extension\n' +
-                'Extension version: 1.3.6\n\n' +
+                'Extension version: 1.4.0\n\n' +
                 'Description:\n' +
                 'GNOME Shell extension gp-gnome for GlobalProtect VPN CLI (PanGPLinux) integration.\n' +
                 'Provides complete VPN management with native GNOME integration,\n' +
