@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.4.0] - 2026-02-20
+
+### Fixed
+- **Gateway switching**: Fixed gateway switch failing with "Command timed out after 30 seconds" or silently staying on original gateway ([#2](https://github.com/totoshko88/gp-gnome/issues/2)). Root cause: GP daemon holds session after `disconnect` command returns, causing subsequent `connect --gateway` to hit "already established" error. Fix: poll status until actually disconnected before reconnecting, and perform explicit disconnect between retries
+- **Gateway switching**: `connectToGateway()` now passes `--portal` and `--username` flags to ensure correct portal context during gateway switch
+- **EGO Review**: Replaced `GLib.spawn_command_line_async()` in `extension.js:disable()` with `Gio.Subprocess` for proper subprocess handling
+- **EGO Review**: Removed unused `GLib` import from `extension.js`
+
+### Added
+- **gpClient.js**: New `waitForDisconnect()` method — polls VPN status until actually disconnected (max 15 attempts, 1s interval) instead of relying on fixed delay
+- **Issue #1 context**: SAML/SSO via default browser requires `<default-browser>yes</default-browser>` in `/opt/paloaltonetworks/globalprotect/pangps.xml` (GP CLI 6.2.1+, requires root access — server-side configuration recommended)
+
+### Changed
+- **Gateway retry logic**: On "already established" error during gateway connect, now performs `disconnect` + 3s wait before retry instead of just 1s wait (which repeated the same error)
+- **Gateway switch flow**: Replaced fixed 2s delay after disconnect with active status polling (up to 15s) to reliably detect when daemon releases the session
+- **connectToGateway()**: Extended signature to accept optional `portal` and `username` parameters for correct authentication context
+
 ## [1.3.9] - 2026-01-06
 
 ### Fixed

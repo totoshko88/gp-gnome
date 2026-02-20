@@ -29,6 +29,9 @@ const COMMAND_TIMEOUT_MFA = 30;
 const COMMAND_TIMEOUT_LOG_COLLECTION = 60;
 const COMMAND_TIMEOUT_SHOW = 5;
 const RETRY_DELAY_MS = 1000;
+const GATEWAY_RETRY_DELAY_MS = 3000;
+const DISCONNECT_POLL_INTERVAL_MS = 1000;
+const DISCONNECT_POLL_MAX_ATTEMPTS = 15;
 const MAX_RETRY_COUNT = 2;
 
 // CLI error patterns that trigger retry
@@ -526,7 +529,7 @@ export class GlobalProtectClient {
         return result.stdout || `Preferred gateway set to ${gateway}`;
     }
 
-    async connectToGateway(gateway, statusCallback = null, retryCount = 0) {
+    async connectToGateway(gateway, statusCallback = null, retryCount = 0, portal = null, username = null) {
         if (!gateway || typeof gateway !== 'string' || gateway.trim().length === 0) {
             throw new TypeError('Gateway address must be a non-empty string');
         }
@@ -538,13 +541,27 @@ export class GlobalProtectClient {
             statusCallback('connecting', message);
         }
 
-        const result = await this._executeCommand(['connect', '--gateway', gateway], COMMAND_TIMEOUT_MFA);
+        const args = ['connect', '--gateway', gateway];
+        if (portal) {
+            args.push('--portal', portal);
+        }
+        if (username) {
+            args.push('--username', username);
+        }
+
+        const result = await this._executeCommand(args, COMMAND_TIMEOUT_MFA);
         const output = result.stdout + result.stderr;
 
         if (output.includes('already established') || output.includes('Unable to establish a new GlobalProtect connection')) {
             if (retryCount < MAX_RETRY_COUNT) {
-                await this._delay(RETRY_DELAY_MS);
-                return this.connectToGateway(gateway, statusCallback, retryCount + 1);
+                // Disconnect first before retrying — the daemon still holds the session
+                try {
+                    await this._executeCommand(['disconnect'], COMMAND_TIMEOUT_DEFAULT);
+                } catch (_e) {
+                    // Ignore disconnect errors during retry
+                }
+                await this._delay(GATEWAY_RETRY_DELAY_MS);
+                return this.connectToGateway(gateway, statusCallback, retryCount + 1, portal, username);
             }
 
             const status = await this.getStatus();
@@ -560,6 +577,27 @@ export class GlobalProtectClient {
         }
 
         return {success: success, message: result.stdout || result.stderr || 'Connected to gateway'};
+    }
+
+    /**
+     * Wait until VPN is actually disconnected by polling status
+     * @param {number} maxAttempts - Maximum poll attempts
+     * @returns {Promise<boolean>} True if disconnected within timeout
+     */
+    async waitForDisconnect(maxAttempts = DISCONNECT_POLL_MAX_ATTEMPTS) {
+        for (let i = 0; i < maxAttempts; i++) {
+            await this._delay(DISCONNECT_POLL_INTERVAL_MS);
+
+            if (this._cancellable && this._cancellable.is_cancelled()) {
+                return false;
+            }
+
+            const status = await this.getStatus();
+            if (!status.connected) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

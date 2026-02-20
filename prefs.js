@@ -89,7 +89,7 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
 
         aboutGroup.add(new Adw.ActionRow({
             title: 'gp-gnome',
-            subtitle: 'Version 1.3.7 | Anton Isaiev'
+            subtitle: 'Version 1.4.0 | Anton Isaiev'
         }));
 
         aboutGroup.add(new Adw.ActionRow({

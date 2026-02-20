@@ -20,7 +20,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -81,9 +81,12 @@ export default class GlobalProtectExtension extends Extension {
     disable() {
         // 1. Auto-disconnect FIRST - ensures VPN disconnects on logout/lock
         try {
-            GLib.spawn_command_line_async('globalprotect disconnect');
+            Gio.Subprocess.new(
+                ['globalprotect', 'disconnect'],
+                Gio.SubprocessFlags.NONE
+            );
         } catch (e) {
-            // Ignore - VPN might already be disconnected
+            // Ignore - VPN might already be disconnected or CLI not available
         }
 
         // 2. Stop monitoring (prevents new operations)
