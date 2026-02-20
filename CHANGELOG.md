@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.4.1] - 2026-02-20
+
+### Added
+- **GNOME Shell 50**: Added GNOME Shell 50 to supported versions
+
 ## [1.4.0] - 2026-02-20
 
 ### Fixed

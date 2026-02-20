@@ -65,7 +65,7 @@ jobs:
 
         ## Requirements
 
-        - GNOME Shell 45, 46, 47, 48, or 49
+        - GNOME Shell 45, 46, 47, 48, 49, or 50
         - GlobalProtect CLI installed
         EOF
     

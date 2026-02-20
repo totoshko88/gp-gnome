@@ -6,7 +6,7 @@ inclusion: always
 
 ## Platform Requirements
 
-- GNOME Shell: 45, 46, 47, 48, 49
+- GNOME Shell: 45, 46, 47, 48, 49, 50
 - Language: JavaScript (GJS - GNOME JavaScript bindings)
 - Runtime: GJS (GNOME JavaScript runtime)
 - Extension UUID: `gp-gnome@totoshko88.github.io`

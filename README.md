@@ -1,7 +1,7 @@
 # gp-gnome
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--49-blue.svg)](https://www.gnome.org/)
+[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--50-blue.svg)](https://www.gnome.org/)
 [![Version](https://img.shields.io/badge/version-1.3.6-green.svg)](CHANGELOG.md)
 [![CI](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml/badge.svg)](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml)
 
@@ -23,7 +23,7 @@ GNOME Shell extension for GlobalProtect VPN CLI integration. Native system tray 
 
 ## Requirements
 
-- GNOME Shell 45, 46, 47, 48, or 49
+- GNOME Shell 45, 46, 47, 48, 49, or 50
 - GlobalProtect CLI installed (`globalprotect` command available)
 
 ## Installation

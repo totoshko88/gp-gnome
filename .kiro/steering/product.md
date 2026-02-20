@@ -22,7 +22,7 @@ Replace manual CLI usage with a graphical interface for managing GlobalProtect V
 
 ## Target Environment
 
-- GNOME Shell versions 45-49
+- GNOME Shell versions 45-50
 - GlobalProtect CLI (PanGPLinux) installed at `/usr/bin/globalprotect` or `/opt/paloaltonetworks/globalprotect/globalprotect`
 - Linux desktop users preferring GUI over CLI
 
