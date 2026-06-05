@@ -627,7 +627,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         const contentLabel = new St.Label({
             text: content,
             style_class: 'globalprotect-info-text',
-            style: 'font-family: monospace; font-size: 10pt; color: #ffffff;'
+            style: 'font-family: monospace; font-size: 10pt;'
         });
         contentLabel.clutter_text.line_wrap = true;
         contentLabel.clutter_text.line_wrap_mode = Pango.WrapMode.WORD_CHAR;
@@ -759,14 +759,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         // Current portal label
         const currentLabel = new St.Label({
             text: `Current portal: ${currentPortal}`,
-            style: 'font-size: 11pt; color: #ffffff;'
+            style: 'font-size: 11pt;'
         });
         contentBox.add_child(currentLabel);
 
         // New portal label
         const newLabel = new St.Label({
             text: 'New portal address:',
-            style: 'font-size: 11pt; color: #ffffff; margin-top: 10px;'
+            style: 'font-size: 11pt; margin-top: 10px;'
         });
         contentBox.add_child(newLabel);
 
@@ -782,7 +782,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         // Info label
         const infoLabel = new St.Label({
             text: 'After changing, reconnect to VPN.',
-            style: 'font-size: 10pt; color: #aaaaaa; margin-top: 10px;'
+            style: 'font-size: 10pt; margin-top: 10px;'
         });
         contentBox.add_child(infoLabel);
 
@@ -1097,7 +1097,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Portal section
             const portalLabel = new St.Label({
                 text: 'Portal Address:',
-                style: 'font-size: 11pt; color: #ffffff;'
+                style: 'font-size: 11pt;'
             });
             contentBox.add_child(portalLabel);
 
@@ -1112,7 +1112,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Poll interval section
             const intervalLabel = new St.Label({
                 text: 'Poll Interval (seconds):',
-                style: 'font-size: 11pt; color: #ffffff; margin-top: 15px;'
+                style: 'font-size: 11pt; margin-top: 15px;'
             });
             contentBox.add_child(intervalLabel);
 
@@ -1127,7 +1127,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Info label
             const infoLabel = new St.Label({
                 text: 'Poll interval: how often to check VPN status (recommended: 5-10 seconds)',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 10px;'
+                style: 'font-size: 10pt; margin-top: 10px;'
             });
             infoLabel.clutter_text.line_wrap = true;
             infoLabel.clutter_text.line_wrap_mode = Pango.WrapMode.WORD;
@@ -1136,7 +1136,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Username section
             const usernameLabel = new St.Label({
                 text: 'Username (optional):',
-                style: 'font-size: 11pt; color: #ffffff; margin-top: 15px;'
+                style: 'font-size: 11pt; margin-top: 15px;'
             });
             contentBox.add_child(usernameLabel);
 
@@ -1150,7 +1150,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             const usernameInfo = new St.Label({
                 text: 'If specified, will be used for VPN connection. Leave empty to be prompted.',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 5px;'
+                style: 'font-size: 10pt; margin-top: 5px;'
             });
             usernameInfo.clutter_text.line_wrap = true;
             usernameInfo.clutter_text.line_wrap_mode = Pango.WrapMode.WORD;
@@ -1165,7 +1165,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Clear Credentials section
             const clearCredsLabel = new St.Label({
                 text: 'Clear Credentials:',
-                style: 'font-size: 11pt; color: #ffffff;'
+                style: 'font-size: 11pt;'
             });
             contentBox.add_child(clearCredsLabel);
 
@@ -1182,7 +1182,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             const clearCredsInfo = new St.Label({
                 text: 'Remove saved username and password from GlobalProtect',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 5px;'
+                style: 'font-size: 10pt; margin-top: 5px;'
             });
             clearCredsInfo.clutter_text.line_wrap = true;
             clearCredsInfo.clutter_text.line_wrap_mode = Pango.WrapMode.WORD;
@@ -1197,7 +1197,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Advanced Settings section
             const advancedLabel = new St.Label({
                 text: 'Advanced Settings:',
-                style: 'font-size: 11pt; color: #ffffff; font-weight: bold;'
+                style: 'font-size: 11pt; font-weight: bold;'
             });
             contentBox.add_child(advancedLabel);
 
@@ -1208,35 +1208,35 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             });
 
             const sslOnlyCheckbox = new St.Button({
-                style: `width: 20px; height: 20px; border: 2px solid #ffffff; border-radius: 4px; background-color: ${currentSslOnly ? '#3584e4' : 'transparent'};`,
+                style: `width: 20px; height: 20px; border: 2px solid #777777; border-radius: 4px; background-color: ${currentSslOnly ? '#3584e4' : 'transparent'};`,
                 can_focus: true
             });
 
             let sslOnlyChecked = currentSslOnly;
             sslOnlyCheckbox.connect('clicked', () => {
                 sslOnlyChecked = !sslOnlyChecked;
-                sslOnlyCheckbox.style = `width: 20px; height: 20px; border: 2px solid #ffffff; border-radius: 4px; background-color: ${sslOnlyChecked ? '#3584e4' : 'transparent'};`;
+                sslOnlyCheckbox.style = `width: 20px; height: 20px; border: 2px solid #777777; border-radius: 4px; background-color: ${sslOnlyChecked ? '#3584e4' : 'transparent'};`;
             });
 
             sslOnlyBox.add_child(sslOnlyCheckbox);
 
             const sslOnlyLabel = new St.Label({
                 text: '  SSL Only Mode',
-                style: 'font-size: 11pt; color: #ffffff; margin-left: 10px;'
+                style: 'font-size: 11pt; margin-left: 10px;'
             });
             sslOnlyBox.add_child(sslOnlyLabel);
             contentBox.add_child(sslOnlyBox);
 
             const sslOnlyInfo = new St.Label({
                 text: 'Force SSL-only connections (more secure)',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 5px; margin-left: 30px;'
+                style: 'font-size: 10pt; margin-top: 5px; margin-left: 30px;'
             });
             contentBox.add_child(sslOnlyInfo);
 
             // Log Level dropdown
             const logLevelLabel = new St.Label({
                 text: 'Log Level:',
-                style: 'font-size: 11pt; color: #ffffff; margin-top: 15px;'
+                style: 'font-size: 11pt; margin-top: 15px;'
             });
             contentBox.add_child(logLevelLabel);
 
@@ -1276,14 +1276,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             const logLevelInfo = new St.Label({
                 text: 'Higher levels provide more detailed logs (debug = most verbose)',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 5px;'
+                style: 'font-size: 10pt; margin-top: 5px;'
             });
             contentBox.add_child(logLevelInfo);
 
             // Import Certificate button
             const importCertLabel = new St.Label({
                 text: 'Client Certificate:',
-                style: 'font-size: 11pt; color: #ffffff; margin-top: 15px;'
+                style: 'font-size: 11pt; margin-top: 15px;'
             });
             contentBox.add_child(importCertLabel);
 
@@ -1300,7 +1300,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             const importCertInfo = new St.Label({
                 text: 'Import client certificate for authentication',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 5px;'
+                style: 'font-size: 10pt; margin-top: 5px;'
             });
             contentBox.add_child(importCertInfo);
 
@@ -1538,7 +1538,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Info label
             const infoLabel = new St.Label({
                 text: 'Enter the full path to your certificate file:',
-                style: 'font-size: 11pt; color: #ffffff;'
+                style: 'font-size: 11pt;'
             });
             contentBox.add_child(infoLabel);
 
@@ -1553,7 +1553,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Example label
             const exampleLabel = new St.Label({
                 text: 'Example: /home/user/certificates/client.pem',
-                style: 'font-size: 10pt; color: #aaaaaa; margin-top: 5px;'
+                style: 'font-size: 10pt; margin-top: 5px;'
             });
             contentBox.add_child(exampleLabel);
 
@@ -1574,7 +1574,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
                     if (!certPath) {
                         validationLabel.text = '⚠ Please enter a certificate path';
-                        validationLabel.style = 'font-size: 10pt; color: #f66151; margin-top: 10px;';
+                        validationLabel.style = 'font-size: 10pt; margin-top: 10px;';
                         return;
                     }
 
@@ -1582,14 +1582,14 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                     const file = Gio.File.new_for_path(certPath);
                     if (!file.query_exists(null)) {
                         validationLabel.text = `❌ File not found: ${certPath}`;
-                        validationLabel.style = 'font-size: 10pt; color: #f66151; margin-top: 10px;';
+                        validationLabel.style = 'font-size: 10pt; margin-top: 10px;';
                         return;
                     }
 
                     // Check file extension
                     if (!certPath.endsWith('.pem') && !certPath.endsWith('.crt') && !certPath.endsWith('.cer')) {
                         validationLabel.text = '⚠ Warning: File should be .pem, .crt, or .cer';
-                        validationLabel.style = 'font-size: 10pt; color: #f9f06b; margin-top: 10px;';
+                        validationLabel.style = 'font-size: 10pt; margin-top: 10px;';
                         // Continue anyway
                     }
 
