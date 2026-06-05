@@ -898,7 +898,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 });
 
                 if (!gateway.current) {
-                    gatewayItem.connect('activate', () => this._setGateway(gateway.name));
+                    gatewayItem.connect('activate', () => this._setGateway(gateway.address, gateway.name));
                 }
 
                 this._gatewayMenu.menu.addMenuItem(gatewayItem);
@@ -942,10 +942,11 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
     /**
      * Set preferred gateway and reconnect
-     * @param {string} gateway - Gateway address
+     * @param {string} gatewayAddress - Gateway address
+     * @param {string} gatewayLabel - Human-readable gateway label
      * @private
      */
-    async _setGateway(gateway) {
+    async _setGateway(gatewayAddress, gatewayLabel = gatewayAddress) {
         try {
             const currentStatus = this._statusMonitor.getCurrentStatus();
 
@@ -955,7 +956,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             this._updateMenu(currentStatus);
 
             // Show notification that we're switching
-            this._showNotification('Switching Gateway', `Switching to ${gateway}...`);
+            this._showNotification('Switching Gateway', `Switching to ${gatewayLabel}...`);
 
             // If connected, disconnect first and wait until actually disconnected
             if (currentStatus && currentStatus.connected) {
@@ -973,7 +974,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Connect to the selected gateway with portal address
             const portal = this._settings.get_string('portal-address');
             const username = this._settings.get_string('username');
-            await this._gpClient.connectToGateway(gateway, null, 0, portal, username || null);
+            await this._gpClient.connectToGateway(gatewayAddress, null, 0, portal, username || null);
 
             // Invalidate caches to refresh on next open
             this._gatewayListCache = null;
@@ -985,7 +986,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
             // Force status update by polling immediately
             await this._statusMonitor.forceUpdate();
 
-            this._showNotification('Gateway Changed', `Successfully switched to: ${gateway}`);
+            this._showNotification('Gateway Changed', `Successfully switched to: ${gatewayLabel}`);
         } catch (e) {
             // Clear connecting state on error
             this._isConnecting = false;

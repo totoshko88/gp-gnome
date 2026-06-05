@@ -6,7 +6,7 @@ BUILD_DIR = build
 DIST_DIR = dist
 
 # Extension files
-EXTENSION_FILES = extension.js prefs.js indicator.js gpClient.js statusMonitor.js errorHandler.js metadata.json stylesheet.css
+EXTENSION_FILES = extension.js prefs.js indicator.js gpClient.js gatewayParser.js statusMonitor.js errorHandler.js metadata.json stylesheet.css
 SCHEMA_FILES = schemas/org.gnome.shell.extensions.gp-gnome.gschema.xml
 ICON_FILES = icons/*.svg
 PO_DIR = po
