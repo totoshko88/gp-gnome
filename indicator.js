@@ -31,6 +31,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import {ErrorHandler} from './errorHandler.js';
+import {statusDotState, statusDotStyle} from './statusIndicator.js';
 
 // Constants for delays and timeouts
 const STATUS_UPDATE_DELAY_MS = 300;
@@ -195,17 +196,29 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     _buildMenu() {
+        this._statusDot = new St.Widget({
+            style_class: 'globalprotect-status-dot',
+            style: statusDotStyle('disconnected'),
+            y_align: Clutter.ActorAlign.CENTER
+        });
+
         // Status label (non-reactive)
         this._statusLabel = new St.Label({
             text: 'Not connected',
             style_class: 'globalprotect-status-label globalprotect-disconnected'
         });
 
+        const statusBox = new St.BoxLayout({
+            style_class: 'globalprotect-status-row'
+        });
+        statusBox.add_child(this._statusDot);
+        statusBox.add_child(this._statusLabel);
+
         const statusItem = new PopupMenu.PopupMenuItem('', {
             reactive: false,
             can_focus: false
         });
-        statusItem.actor.add_child(this._statusLabel);
+        statusItem.actor.add_child(statusBox);
         this.menu.addMenuItem(statusItem);
 
         // Separator
@@ -370,11 +383,30 @@ class GlobalProtectIndicator extends PanelMenu.Button {
     }
 
     /**
+     * Update the menu status dot based on connection state
+     * @param {Object} status - Status object
+     * @param {boolean} isError - Whether to show error state
+     * @private
+     */
+    _updateStatusDot(status, isError = false) {
+        if (!this._statusDot) return;
+
+        const state = statusDotState({
+            connected: !!(status && status.connected),
+            transitioning: this._isConnecting || this._isDisconnecting || this._isMfaWaiting,
+            error: isError
+        });
+        this._statusDot.style = statusDotStyle(state);
+    }
+
+    /**
      * Update menu labels based on connection state
      * @param {Object} status - Status object
      * @private
      */
     _updateMenu(status) {
+        this._updateStatusDot(status);
+
         if (this._isMfaWaiting) {
             this._statusLabel.text = 'Waiting for authentication...';
             this._statusLabel.style_class = 'globalprotect-status-label globalprotect-mfa-waiting';
@@ -577,10 +609,12 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 uiCallback: () => {
                     // Show error icon
                     this._updateIcon(currentStatus, true);
+                    this._updateStatusDot(currentStatus, true);
 
                     // Reset to normal icon after delay
                     this._addTimeout(() => {
                         this._updateIcon(this._statusMonitor.getCurrentStatus(), false);
+                        this._updateStatusDot(this._statusMonitor.getCurrentStatus(), false);
                     }, ERROR_ICON_RESET_DELAY_MS);
                 }
             });

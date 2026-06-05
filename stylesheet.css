@@ -47,6 +47,10 @@
     padding: 4px 8px;
 }
 
+.globalprotect-status-row {
+    spacing: 8px;
+}
+
 /* Status state classes are semantic hooks; GNOME Shell controls text color. */
 
 /* ============================================
