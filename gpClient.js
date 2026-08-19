@@ -22,6 +22,7 @@
 
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import {parseManualGatewayOutput} from './gatewayParser.js';
 
 // Constants for timeouts and delays
 const COMMAND_TIMEOUT_DEFAULT = 10;
@@ -460,47 +461,31 @@ export class GlobalProtectClient {
             const manualResult = await this._executeCommand(['show', '--manual-gateway'], 5);
             const detailsResult = await this._executeCommand(['show', '--details'], 5);
 
-            const gateways = [];
-            const lines = (manualResult.stdout + manualResult.stderr).split('\n');
+            const gateways = parseManualGatewayOutput(manualResult.stdout + manualResult.stderr);
 
             let currentGatewayName = null;
+            let currentGatewayAddress = null;
             const detailsLines = (detailsResult.stdout + detailsResult.stderr).split('\n');
             for (const line of detailsLines) {
                 const trimmed = line.trim();
-                if (trimmed.toLowerCase().startsWith('gateway name:')) {
+                const lowerLine = trimmed.toLowerCase();
+                if (lowerLine.startsWith('gateway name:')) {
                     const parts = trimmed.split(':');
                     if (parts.length >= 2) {
                         currentGatewayName = parts.slice(1).join(':').trim();
                     }
-                    break;
+                } else if (lowerLine.includes('gateway:') && !lowerLine.includes('gateway ip') && !lowerLine.includes('gateway description')) {
+                    const parts = trimmed.split(':');
+                    if (parts.length >= 2) {
+                        currentGatewayAddress = parts.slice(1).join(':').trim();
+                    }
                 }
             }
 
-            let inGatewayList = false;
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (trimmed === '' || trimmed.startsWith('Name')) continue;
-
-                if (trimmed.startsWith('---')) {
-                    inGatewayList = true;
-                    continue;
-                }
-
-                if (inGatewayList) {
-                    const parts = trimmed.split(/\s+/);
-                    if (parts.length >= 1) {
-                        const name = parts[0];
-                        const address = parts.length >= 2 ? parts[1] : name;
-                        const preferred = parts.length >= 3 && parts[2].toLowerCase() === 'yes';
-
-                        gateways.push({
-                            name: name,
-                            address: address,
-                            preferred: preferred,
-                            current: currentGatewayName === name
-                        });
-                    }
-                }
+            for (const gateway of gateways) {
+                gateway.current = currentGatewayName === gateway.name ||
+                    currentGatewayName === gateway.address ||
+                    currentGatewayAddress === gateway.address;
             }
 
             return gateways;

@@ -45,28 +45,13 @@
     font-weight: bold;
     font-size: 10pt;
     padding: 4px 8px;
-    color: #eeeeec;
 }
 
-/* Connected state - success green */
-.globalprotect-connected {
-    color: #8ff0a4;
+.globalprotect-status-row {
+    spacing: 8px;
 }
 
-/* Disconnected state - neutral/inactive */
-.globalprotect-disconnected {
-    color: #c0bfbc;
-}
-
-/* Transitioning state - warning orange */
-.globalprotect-transitioning {
-    color: #ffa348;
-}
-
-/* MFA waiting state - info blue */
-.globalprotect-mfa-waiting {
-    color: #62a0ea;
-}
+/* Status state classes are semantic hooks; GNOME Shell controls text color. */
 
 /* ============================================
    Advanced Menu
@@ -129,19 +114,4 @@
 .globalprotect-status-label:focus {
     outline: 2px solid #62a0ea;
     outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .globalprotect-connected {
-        color: #33d17a;
-    }
-    
-    .globalprotect-disconnected {
-        color: #ffffff;
-    }
-    
-    .globalprotect-transitioning {
-        color: #ff7800;
-    }
 }
