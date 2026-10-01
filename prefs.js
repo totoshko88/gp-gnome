@@ -80,6 +80,20 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
         settings.bind('poll-interval', pollRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         optionsGroup.add(pollRow);
 
+        const disconnectOnLockRow = new Adw.SwitchRow({
+            title: _('Disconnect on screen lock'),
+            subtitle: _('Disconnect the VPN when the screen locks (off keeps it connected)')
+        });
+        settings.bind('disconnect-on-lock', disconnectOnLockRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        optionsGroup.add(disconnectOnLockRow);
+
+        const autoDisconnectOnLogoutRow = new Adw.SwitchRow({
+            title: _('Auto-disconnect on logout'),
+            subtitle: _('Disconnect the VPN automatically when logging out')
+        });
+        settings.bind('auto-disconnect-on-logout', autoDisconnectOnLogoutRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        optionsGroup.add(autoDisconnectOnLogoutRow);
+
         page.add(optionsGroup);
 
         // About group
@@ -89,7 +103,7 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
 
         aboutGroup.add(new Adw.ActionRow({
             title: 'gp-gnome',
-            subtitle: 'Version 1.4.0 | Anton Isaiev'
+            subtitle: 'Version 1.5.0 | Anton Isaiev'
         }));
 
         aboutGroup.add(new Adw.ActionRow({
