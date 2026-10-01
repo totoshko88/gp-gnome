@@ -15,7 +15,7 @@ GNOME Shell extension for GlobalProtect VPN CLI integration. Native system tray 
 
 | Category | Features |
 |----------|----------|
-| **Connection** | Connect/Disconnect with MFA support, Gateway selection, Auto-disconnect on logout |
+| **Connection** | Connect/Disconnect with MFA support, Gateway selection, Stays connected on screen lock, Configurable auto-disconnect on lock/logout |
 | **Monitoring** | Real-time status, Configurable polling (3-60s), Custom status icons |
 | **Settings** | Portal address, Username, SSL-only mode, Log level, Certificate import |
 | **Advanced** | Network rediscovery, HIP resubmission, Log collection, Diagnostics |
@@ -79,7 +79,22 @@ gsettings set org.gnome.shell.extensions.gp-gnome portal-address "vpn.example.co
 gsettings set org.gnome.shell.extensions.gp-gnome poll-interval 10
 gsettings set org.gnome.shell.extensions.gp-gnome username "your-username"
 gsettings set org.gnome.shell.extensions.gp-gnome ssl-only true
+gsettings set org.gnome.shell.extensions.gp-gnome disconnect-on-lock false
+gsettings set org.gnome.shell.extensions.gp-gnome auto-disconnect-on-logout true
 ```
+
+### Lock & logout behavior
+
+The extension stays active while the screen is locked, so the VPN remains
+connected across lock/unlock by default.
+
+| Setting | Default | Effect |
+|---------|---------|--------|
+| **Disconnect on screen lock** (`disconnect-on-lock`) | off | When off, the VPN stays connected while the screen is locked. Turn on to disconnect the VPN whenever the screen locks. |
+| **Auto-disconnect on logout** (`auto-disconnect-on-logout`) | on | When on, the VPN is disconnected automatically on logout, extension disable, or GNOME Shell exit. Turn off to leave the VPN connected on logout. |
+
+Both toggles are available in the preferences dialog under **Options**.
+
 
 ## Troubleshooting
 
