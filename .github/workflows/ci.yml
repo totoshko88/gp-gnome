@@ -119,8 +119,12 @@ jobs:
       - name: Install shexli
         run: |
           python -m pip install -U pip
-          # Pin tree-sitter < 0.25 to avoid the shexli 0.2.1 multi-file segfault.
-          pip install shexli "tree-sitter<0.25" "tree-sitter-javascript<0.25"
+          # shexli 0.2.1 declares tree-sitter>=0.25, but that version segfaults
+          # on multi-file runs (upstream native bug). Install shexli normally,
+          # then force tree-sitter(-javascript) < 0.25 with --no-deps so pip's
+          # resolver doesn't reject the known-good downgrade (ResolutionImpossible).
+          pip install shexli
+          pip install --no-deps --force-reinstall "tree-sitter<0.25" "tree-sitter-javascript<0.25"
 
       - name: Run shexli on the packaged extension
         run: |
