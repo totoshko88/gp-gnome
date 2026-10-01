@@ -30,6 +30,7 @@ make test
 | File | Purpose |
 |------|---------|
 | `extension.js` | Lifecycle management |
+| `lockDecision.js` | Pure helper deciding whether to disconnect on disable (lock vs. logout) |
 | `indicator.js` | UI component |
 | `gpClient.js` | CLI wrapper (async) |
 | `statusMonitor.js` | Status polling |

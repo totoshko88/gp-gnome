@@ -4,8 +4,8 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.3.x   | :white_check_mark: |
-| < 1.3   | :x:                |
+| 1.5.x   | :white_check_mark: |
+| < 1.5   | :x:                |
 
 ## Security Measures
 
@@ -15,7 +15,7 @@ This extension implements several security measures:
 - **Sensitive data sanitization**: Passwords, tokens, and cookies are removed from logs
 - **Input validation**: All user inputs are validated before use
 - **No telemetry**: No user data is collected or transmitted
-- **Auto-disconnect**: VPN disconnects on logout for security
+- **Configurable auto-disconnect**: The VPN can be disconnected automatically on logout for security (`auto-disconnect-on-logout`, on by default). The VPN stays connected across screen lock/unlock by default; set `disconnect-on-lock` to drop it on lock as well.
 
 ## Reporting a Vulnerability
 
