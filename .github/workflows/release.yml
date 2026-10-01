@@ -14,7 +14,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
     - name: Install dependencies
       run: |
@@ -120,7 +120,7 @@ jobs:
       run: ls -la dist/
     
     - name: Create Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: gp-gnome v${{ steps.get_version.outputs.VERSION }}
         body_path: /tmp/release_notes.md
