@@ -1,6 +1,6 @@
 {
-  "name": "gnome-globalprotect-extension",
-  "version": "1.0.0",
+  "name": "gp-gnome",
+  "version": "1.5.0",
   "description": "GNOME Shell Extension for GlobalProtect VPN",
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
     "lint:fix": "eslint --fix *.js"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
+    "@eslint/js": "^9.12.0",
+    "eslint": "^9.12.0",
     "fast-check": "^3.15.0",
     "jasmine": "^5.1.0"
   }
