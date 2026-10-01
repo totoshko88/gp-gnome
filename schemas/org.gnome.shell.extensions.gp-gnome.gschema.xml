@@ -38,5 +38,21 @@
         GlobalProtect log level (error, warning, info, debug)
       </description>
     </key>
+    <key name="disconnect-on-lock" type="b">
+      <default>false</default>
+      <summary>Disconnect on screen lock</summary>
+      <description>
+        Disconnect the VPN when the screen locks. When disabled (default), the
+        VPN stays connected across lock/unlock.
+      </description>
+    </key>
+    <key name="auto-disconnect-on-logout" type="b">
+      <default>true</default>
+      <summary>Auto-disconnect on logout</summary>
+      <description>
+        Disconnect the VPN automatically when logging out, disabling the
+        extension, or shutting down GNOME Shell.
+      </description>
+    </key>
   </schema>
 </schemalist>

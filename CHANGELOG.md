@@ -13,6 +13,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.5.0] - 2026-10-01
+
+### Fixed
+- **VPN drops on screen lock**: Fixed the VPN disconnecting on every screen lock/unlock ([#4](https://github.com/totoshko88/gp-gnome/issues/4)). Root cause: on lock GNOME Shell switches the session mode to `unlock-dialog`; because `metadata.json` declared no `session-modes`, the shell disabled the extension and `disable()` ran `globalprotect disconnect`. Fix: declare `session-modes` (`user`, `unlock-dialog`) so the extension survives the lock, and make the teardown disconnect conditional on the session mode
+
+### Added
+- **Settings**: New `disconnect-on-lock` toggle (default off) — keep the VPN connected across screen lock/unlock, or opt in to disconnect on lock
+- **Settings**: New `auto-disconnect-on-logout` toggle (default on) — the previously implicit logout disconnect is now user-visible and configurable
+- **extension.js**: Added testable `_shouldDisconnectOnDisable(currentMode, settings)` helper that decides whether `disable()` disconnects, guarding null settings with safe defaults (keep on lock, disconnect on logout)
+- **CI**: CI now runs the test suite (`npm ci` + `npm test`) on the test job, not just structure/schema validation
+- **Tests**: New `lockDecisionSpec.js` exercising the disconnect decision across `{user, unlock-dialog}` × both flags; `gnome-mocks.js` gained settable `Main.sessionMode` and `MockSettings.get_boolean/set_boolean`
+
+### Changed
+- **Release workflow**: Automated the EGO integer version bump — `release.yml` now increments `metadata.json` `version` before `make dist`, so the packaged zip carries the correct EGO version (previously only the human-readable strings were updated)
+- **metadata.json**: Bumped EGO `version` 11 → 12
+- **CI**: Switched `npm install` → `npm ci` for reproducible installs
+- **package.json**: Fixed stale `name` → `gp-gnome` and `version` → `1.5.0`
+
 ## [1.4.1] - 2026-02-20
 
 ### Added

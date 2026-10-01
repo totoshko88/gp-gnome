@@ -2,11 +2,13 @@
 
 ## Creating a Release
 
-### 1. Update Version
+### 1. Update Changelog
 
 ```bash
-# Update metadata.json version number
-# Update CHANGELOG.md with changes
+# Update CHANGELOG.md with changes for the new version
+# NOTE: do NOT bump the EGO integer in metadata.json by hand — the release
+# workflow does a conditional auto-bump on tag (keeps the committed value if it
+# is already unique vs. prior tags, otherwise increments it).
 ```
 
 ### 2. Build Package
@@ -19,14 +21,16 @@ make dist
 ### 3. Create Git Tag
 
 ```bash
-git add -A
+# Stage only your own changed files by explicit path (never `git add -A`)
+git add CHANGELOG.md <other-changed-files>
 git commit -m "release: vX.Y.Z"
 git push origin main
 git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-GitHub Actions will automatically create a release with notes from CHANGELOG.md.
+GitHub Actions will auto-bump the EGO integer in `metadata.json` (conditionally),
+build the package, and create a release with notes from CHANGELOG.md.
 
 ## Manual Release (if needed)
 
@@ -71,5 +75,5 @@ Follow [Semantic Versioning](https://semver.org/):
 - [ ] All tests pass (`make test`)
 - [ ] EGO guidelines validated
 - [ ] CHANGELOG.md updated
-- [ ] metadata.json version updated
 - [ ] README.md version badge updated
+- [ ] metadata.json EGO version is left to the release workflow (conditional auto-bump)

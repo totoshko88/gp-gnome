@@ -10,15 +10,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
       
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       
       - name: Run ESLint
         run: npm run lint
@@ -26,12 +26,23 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
       
       - name: Install GJS
         run: |
           sudo apt-get update
           sudo apt-get install -y gjs libglib2.0-dev
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run test suite
+        run: npm test
       
       - name: Validate extension structure
         run: |
@@ -58,7 +69,7 @@ jobs:
   validate-ego:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       
       - name: Check for forbidden patterns
         run: |
@@ -80,3 +91,52 @@ jobs:
           fi
           
           echo "EGO validation passed"
+
+  shexli:
+    # Static analysis with the EGO reviewers' shexli linter, run against the
+    # BUILT zip (make dist) so repo-only artifacts (node_modules, build/, .git)
+    # don't produce false findings. shexli 0.2.1 segfaults with
+    # tree-sitter(-javascript) >= 0.25 (upstream native bug), so we pin < 0.25.
+    # The job fails only on error-severity findings; manual_review / warnings
+    # are reported but not blocking.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y glib-2.0 zip
+
+      - name: Build distribution zip
+        run: make dist
+
+      - name: Install shexli
+        run: |
+          python -m pip install -U pip
+          # shexli 0.2.1 declares tree-sitter>=0.25, but that version segfaults
+          # on multi-file runs (upstream native bug). Install shexli normally,
+          # then force tree-sitter(-javascript) < 0.25 with --no-deps so pip's
+          # resolver doesn't reject the known-good downgrade (ResolutionImpossible).
+          pip install shexli
+          pip install --no-deps --force-reinstall "tree-sitter<0.25" "tree-sitter-javascript<0.25"
+
+      - name: Run shexli on the packaged extension
+        run: |
+          ZIP="dist/gp-gnome@totoshko88.github.io.zip"
+          echo "== shexli report =="
+          shexli "$ZIP" || true
+          # Fail only on error-severity findings.
+          ERRORS=$(shexli --format json "$ZIP" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['summary']['severity_counts'].get('error',0))")
+          echo "shexli error-severity findings: $ERRORS"
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "ERROR: shexli reported $ERRORS error-severity finding(s)"
+            exit 1
+          fi
+          echo "shexli OK (no error-severity findings)"

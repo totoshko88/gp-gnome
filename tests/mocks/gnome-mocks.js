@@ -127,7 +127,9 @@ export class MockSettings {
     constructor() {
         this._data = {
             'portal-address': 'vpn.epam.com',
-            'poll-interval': 5
+            'poll-interval': 5,
+            'disconnect-on-lock': false,
+            'auto-disconnect-on-logout': true
         };
     }
     
@@ -146,10 +148,20 @@ export class MockSettings {
     set_int(key, value) {
         this._data[key] = value;
     }
+    
+    get_boolean(key) {
+        return this._data[key] === true;
+    }
+    
+    set_boolean(key, value) {
+        this._data[key] = value;
+    }
 }
 
 // Mock Main (for notifications)
 export const Main = {
+    sessionMode: {currentMode: 'user'},
+    
     notify: function(title, message) {
         // Mock notification
     },

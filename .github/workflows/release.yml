@@ -14,7 +14,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
     - name: Install dependencies
       run: |
@@ -69,6 +69,49 @@ jobs:
         - GlobalProtect CLI installed
         EOF
     
+    - name: Bump EGO version in metadata.json (conditional)
+      run: |
+        # EGO requires a unique, monotonically increasing integer "version" for
+        # each upload. Bump it ONLY when the committed value is not already ahead
+        # of the previous release tag's packaged version, so a release where the
+        # version was already hand-bumped in the commit (tag == committed value)
+        # is published as-is, while an un-bumped commit still gets a fresh EGO
+        # version automatically. Monotonic either way.
+        python3 - << 'EOF'
+        import json, subprocess
+        with open('metadata.json') as f:
+            data = json.load(f)
+        current = data['version']
+
+        # Highest EGO version packaged by any previous tag (metadata.json at that tag).
+        prev = 0
+        try:
+            tags = subprocess.run(
+                ['git', 'tag', '--list', 'v*'],
+                capture_output=True, text=True, check=True
+            ).stdout.split()
+            for t in tags:
+                try:
+                    blob = subprocess.run(
+                        ['git', 'show', f'{t}:metadata.json'],
+                        capture_output=True, text=True, check=True
+                    ).stdout
+                    prev = max(prev, int(json.loads(blob).get('version', 0)))
+                except Exception:
+                    continue
+        except Exception:
+            prev = 0
+
+        if current > prev:
+            print(f"metadata.json EGO version kept at {current} (already > previous {prev})")
+        else:
+            data['version'] = prev + 1
+            with open('metadata.json', 'w') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                f.write('\n')
+            print(f"metadata.json EGO version bumped {current} -> {data['version']} (previous {prev})")
+        EOF
+    
     - name: Create distribution package
       run: |
         make dist
@@ -77,7 +120,7 @@ jobs:
       run: ls -la dist/
     
     - name: Create Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: gp-gnome v${{ steps.get_version.outputs.VERSION }}
         body_path: /tmp/release_notes.md

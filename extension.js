@@ -27,6 +27,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {GlobalProtectClient} from './gpClient.js';
 import {StatusMonitor} from './statusMonitor.js';
 import {GlobalProtectIndicator} from './indicator.js';
+import {shouldDisconnectOnDisable} from './lockDecision.js';
 
 /**
  * gp-gnome Extension
@@ -74,19 +75,43 @@ export default class GlobalProtectExtension extends Extension {
     }
 
     /**
+     * Decide whether disable() should disconnect the VPN.
+     *
+     * Pure, testable decision helper. GNOME switches the session mode to
+     * 'unlock-dialog' when the screen locks; with session-modes declared the
+     * extension survives the lock, but disable() can still run during a lock
+     * transition, so we must not tear down the VPN on a lock unless the user
+     * opted in.
+     *
+     * @param {string} currentMode - Main.sessionMode.currentMode value.
+     * @param {object} settings - GSettings-like object (get_boolean), or null.
+     * @returns {boolean} true if the VPN should be disconnected.
+     */
+    _shouldDisconnectOnDisable(currentMode, settings) {
+        return shouldDisconnectOnDisable(currentMode, settings);
+    }
+
+    /**
      * Disable the extension
      * Cleans up all resources and removes indicator from panel
      * Auto-disconnect runs FIRST to ensure VPN disconnects on logout
      */
     disable() {
-        // 1. Auto-disconnect FIRST - ensures VPN disconnects on logout/lock
-        try {
-            Gio.Subprocess.new(
-                ['globalprotect', 'disconnect'],
-                Gio.SubprocessFlags.NONE
-            );
-        } catch (e) {
-            // Ignore - VPN might already be disconnected or CLI not available
+        // 1. Auto-disconnect FIRST - but only on a real teardown, not on a
+        //    screen lock (unless the user opted in). Decide before clearing
+        //    this._settings in step 5.
+        const currentMode = Main.sessionMode.currentMode;
+        if (this._shouldDisconnectOnDisable(currentMode, this._settings)) {
+            try {
+                Gio.Subprocess.new(
+                    ['globalprotect', 'disconnect'],
+                    Gio.SubprocessFlags.NONE
+                );
+            } catch (e) {
+                // Ignore - VPN might already be disconnected or CLI not available
+            }
+        } else {
+            console.info(`gp-gnome: keeping VPN connected on disable (mode=${currentMode})`);
         }
 
         // 2. Stop monitoring (prevents new operations)
