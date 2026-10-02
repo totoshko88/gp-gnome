@@ -1,9 +1,10 @@
 # gp-gnome
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--50-blue.svg)](https://www.gnome.org/)
-[![Version](https://img.shields.io/badge/version-1.5.0-green.svg)](CHANGELOG.md)
+[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--51-blue.svg)](https://www.gnome.org/)
+[![Version](https://img.shields.io/badge/version-1.5.1-green.svg)](CHANGELOG.md)
 [![CI](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml/badge.svg)](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml)
+[![Get it on GNOME Extensions](https://img.shields.io/badge/GNOME%20Extensions-Install-4A86CF?logo=gnome)](https://extensions.gnome.org/extension/8899/gp-gnome/)
 
 GNOME Shell extension for GlobalProtect VPN CLI integration. Native system tray indicator with full VPN management.
 
@@ -23,12 +24,16 @@ GNOME Shell extension for GlobalProtect VPN CLI integration. Native system tray 
 
 ## Requirements
 
-- GNOME Shell 45, 46, 47, 48, 49, or 50
+- GNOME Shell 45, 46, 47, 48, 49, 50, or 51
 - GlobalProtect CLI installed (`globalprotect` command available)
 
 ## Installation
 
-### From Release (Recommended)
+### From GNOME Extensions (recommended)
+
+**[→ Install from extensions.gnome.org](https://extensions.gnome.org/extension/8899/gp-gnome/)**
+
+### From Release
 
 ```bash
 # Download and install
@@ -146,10 +151,11 @@ bash tests/validate-review-guidelines.sh
 - [CHANGELOG.md](CHANGELOG.md) - Version history
 - [CONTRIBUTING.md](CONTRIBUTING.md) - How to contribute
 - [DISTRIBUTION.md](DISTRIBUTION.md) - Release process
+- [SECURITY.md](SECURITY.md) - Security policy and supported versions
 
 ## Support
 
-[![Donatello](https://img.shields.io/badge/Donatello-Support-ff8c00)](https://donatello.to/totoshko88)
+[![Donatello](https://img.shields.io/badge/Donatello-Support-ff6b2c)](https://donatello.to/totoshko88)
 [![Monobank](https://img.shields.io/badge/Monobank-UAH-black?logo=monobank)](https://send.monobank.ua/jar/2UgaGcQ3JC)
 
 ## License
