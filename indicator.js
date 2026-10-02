@@ -652,7 +652,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         });
 
         const contentBox = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'globalprotect-info-content',
             style: 'padding: 20px;'
         });
@@ -792,7 +792,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
         // Add content box
         const contentBox = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style: 'padding: 20px; spacing: 15px; min-width: 500px;'
         });
 
@@ -1131,7 +1131,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             // Add content box
             const contentBox = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style: 'padding: 20px; spacing: 15px; min-width: 500px;'
             });
 
@@ -1572,7 +1572,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             // Add content box
             const contentBox = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style: 'padding: 20px; spacing: 15px; min-width: 500px;'
             });
 
