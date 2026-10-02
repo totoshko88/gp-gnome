@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.5.1] - 2026-10-02
+
+### Fixed
+- **Extension failed to load (broken 1.5.0 package)**: The 1.5.0 release zip was missing `lockDecision.js`, so the extension failed at load with `ImportError` and `State: ERROR`. Root cause: `extension.js` imports `./lockDecision.js` (the #4 lock-decision helper), but the file was never added to `EXTENSION_FILES` in the `Makefile`, so neither `make install` nor `make dist` copied it into the package. Not caught by CI because the unit tests import the JS directly via Node, which never exercises the packaged file set. Fix: add `lockDecision.js` to `EXTENSION_FILES`
+
+### Changed
+- **Clipboard access documented for review**: Added a reviewer-facing comment above `St.Clipboard.get_default()` in `indicator.js` explaining the access is write-only (`set_text`), user-initiated (the "Copy" button), and only ever copies the dialog's own already-displayed content. Addresses the EGO `EGO-A-005` manual-review flag without any behavior change
+- **metadata.json**: Bumped EGO `version` 12 → 13
+
+### Added
+- **GNOME 51 support**: Added `51` to `shell-version`. The one GNOME 51 breaking change that affected this extension — the removal of the deprecated `vertical` property on St widgets — was fixed by switching all four `St.BoxLayout({vertical: true})` dialogs to `orientation: Clutter.Orientation.VERTICAL` (compatible across 45–51). Verified against the official GNOME Shell 51 porting guide: `disable()` is synchronous (51 would throw on an async one), and the extension uses none of the other removed/changed APIs (`St.ButtonMask` renames, direct `key-press-event` connects, `Gio.DBus.makeProxyWrapper`, `Shell.GLSLEffect`, `Clutter.get_default_backend`, `pointerWatcher`)
+
 ## [1.5.0] - 2026-10-01
 
 ### Fixed

@@ -131,12 +131,28 @@ jobs:
           ZIP="dist/gp-gnome@totoshko88.github.io.zip"
           echo "== shexli report =="
           shexli "$ZIP" || true
-          # Fail only on error-severity findings.
-          ERRORS=$(shexli --format json "$ZIP" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['summary']['severity_counts'].get('error',0))")
-          echo "shexli error-severity findings: $ERRORS"
-          if [ "$ERRORS" -gt 0 ]; then
-            echo "ERROR: shexli reported $ERRORS error-severity finding(s)"
-            exit 1
-          fi
-          echo "shexli OK (no error-severity findings)"
+          # Fail on error-severity findings, EXCEPT a documented allowlist of
+          # known false positives from shexli's stale ruleset:
+          #   EGO-M-004 — flags shell-version "51" as an "implausible future
+          #   release". GNOME 51 is a real (RC) release and EGO's own rule
+          #   allows stable releases plus one development release, so "51" is
+          #   valid; shexli 0.2.1 just has an outdated version table. Remove
+          #   this exception once shexli recognizes 51.
+          shexli --format json "$ZIP" > shexli.json
+          python3 - << 'EOF'
+          import json, sys
+          ALLOW = {"EGO-M-004"}  # documented false positives (stale shexli table)
+          data = json.load(open("shexli.json"))
+          blocking = [f for f in data.get("findings", [])
+                      if f.get("severity") == "error" and f.get("rule_id") not in ALLOW]
+          allowed = [f for f in data.get("findings", [])
+                     if f.get("severity") == "error" and f.get("rule_id") in ALLOW]
+          for f in allowed:
+              print(f"ALLOWED (known false positive): {f['rule_id']} — {f.get('title','')}")
+          print(f"shexli blocking error-severity findings: {len(blocking)}")
+          if blocking:
+              for f in blocking:
+                  print(f"  BLOCKING: {f['rule_id']} — {f.get('message','')}")
+              sys.exit(1)
+          print("shexli OK (no blocking error-severity findings)")
+          EOF

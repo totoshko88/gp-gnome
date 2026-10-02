@@ -652,7 +652,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         });
 
         const contentBox = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'globalprotect-info-content',
             style: 'padding: 20px;'
         });
@@ -675,7 +675,13 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         dialog.addButton({
             label: 'Copy',
             action: () => {
-                // Copy content to clipboard
+                // EGO-A-005 (manual_review): clipboard access is write-only and
+                // user-initiated. We only WRITE (set_text) the dialog's own
+                // already-displayed `content` into the clipboard when the user
+                // explicitly clicks "Copy". We never read the clipboard, never
+                // access it in the background, and never copy anything the user
+                // cannot already see on screen. St.Clipboard is the only GNOME
+                // Shell API for this; there is no non-clipboard alternative.
                 St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, content);
                 this._showNotification('Copied', 'Content copied to clipboard');
             }
@@ -786,7 +792,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
         // Add content box
         const contentBox = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style: 'padding: 20px; spacing: 15px; min-width: 500px;'
         });
 
@@ -1125,7 +1131,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             // Add content box
             const contentBox = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style: 'padding: 20px; spacing: 15px; min-width: 500px;'
             });
 
@@ -1566,7 +1572,7 @@ class GlobalProtectIndicator extends PanelMenu.Button {
 
             // Add content box
             const contentBox = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style: 'padding: 20px; spacing: 15px; min-width: 500px;'
             });
 

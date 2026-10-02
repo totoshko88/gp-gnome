@@ -1,6 +1,6 @@
 {
   "name": "gp-gnome",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "GNOME Shell Extension for GlobalProtect VPN",
   "type": "module",
   "scripts": {
