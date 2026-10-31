@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45--51-blue.svg)](https://www.gnome.org/)
-[![Version](https://img.shields.io/badge/version-1.5.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.2-green.svg)](CHANGELOG.md)
 [![CI](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml/badge.svg)](https://github.com/totoshko88/gp-gnome/actions/workflows/ci.yml)
 [![Get it on GNOME Extensions](https://img.shields.io/badge/GNOME%20Extensions-Install-4A86CF?logo=gnome)](https://extensions.gnome.org/extension/8899/gp-gnome/)
 
@@ -84,21 +84,11 @@ gsettings set org.gnome.shell.extensions.gp-gnome portal-address "vpn.example.co
 gsettings set org.gnome.shell.extensions.gp-gnome poll-interval 10
 gsettings set org.gnome.shell.extensions.gp-gnome username "your-username"
 gsettings set org.gnome.shell.extensions.gp-gnome ssl-only true
-gsettings set org.gnome.shell.extensions.gp-gnome disconnect-on-lock false
-gsettings set org.gnome.shell.extensions.gp-gnome auto-disconnect-on-logout true
 ```
 
 ### Lock & logout behavior
 
-The extension stays active while the screen is locked, so the VPN remains
-connected across lock/unlock by default.
-
-| Setting | Default | Effect |
-|---------|---------|--------|
-| **Disconnect on screen lock** (`disconnect-on-lock`) | off | When off, the VPN stays connected while the screen is locked. Turn on to disconnect the VPN whenever the screen locks. |
-| **Auto-disconnect on logout** (`auto-disconnect-on-logout`) | on | When on, the VPN is disconnected automatically on logout, extension disable, or GNOME Shell exit. Turn off to leave the VPN connected on logout. |
-
-Both toggles are available in the preferences dialog under **Options**.
+The extension does not manage the VPN across screen lock or logout. The GlobalProtect daemon owns the tunnel, so the connection stays up while the screen is locked regardless of the extension's state. To disconnect, use the extension's Connect/Disconnect toggle or the `globalprotect disconnect` command.
 
 
 ## Troubleshooting
