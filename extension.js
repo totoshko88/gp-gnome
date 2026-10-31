@@ -45,7 +45,8 @@ export default class GlobalProtectExtension extends Extension {
             this._statusMonitor,
             this._settings,
             this.path,
-            () => this.openPreferences()
+            () => this.openPreferences(),
+            this.metadata['version-name']
         );
 
         Main.panel.addToStatusArea(this.uuid, this._indicator);
