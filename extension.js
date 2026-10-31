@@ -44,7 +44,8 @@ export default class GlobalProtectExtension extends Extension {
             this._gpClient,
             this._statusMonitor,
             this._settings,
-            this.path
+            this.path,
+            () => this.openPreferences()
         );
 
         Main.panel.addToStatusArea(this.uuid, this._indicator);
