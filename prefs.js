@@ -30,7 +30,6 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
             icon_name: 'preferences-system-symbolic'
         });
 
-        // Connection group
         const portalGroup = new Adw.PreferencesGroup({
             title: _('Connection'),
             description: _('VPN portal configuration')
@@ -62,7 +61,6 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
 
         page.add(portalGroup);
 
-        // Options group
         const optionsGroup = new Adw.PreferencesGroup({
             title: _('Options')
         });
@@ -82,7 +80,6 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
 
         page.add(optionsGroup);
 
-        // About group
         const aboutGroup = new Adw.PreferencesGroup({
             title: _('About')
         });

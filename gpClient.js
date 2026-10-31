@@ -24,7 +24,6 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import {parseManualGatewayOutput} from './gatewayParser.js';
 
-// Constants for timeouts and delays
 const COMMAND_TIMEOUT_DEFAULT = 10;
 const COMMAND_TIMEOUT_MFA = 30;
 const COMMAND_TIMEOUT_LOG_COLLECTION = 60;
@@ -87,7 +86,6 @@ export class GlobalProtectClient {
             throw new Error('GlobalProtect CLI is not installed or not in PATH');
         }
 
-        // Check if already cancelled or destroyed before starting
         if (!this._cancellable || this._cancellable.is_cancelled()) {
             throw new Error('Operation cancelled before execution');
         }
@@ -105,13 +103,12 @@ export class GlobalProtectClient {
                     try {
                         GLib.source_remove(timeoutId);
                     } catch (e) {
-                        // Ignore
+                        // Source may already be removed.
                     }
                     this._timeoutIds.delete(timeoutId);
                 }
             };
 
-            // Create subprocess first
             try {
                 proc = Gio.Subprocess.new(
                     [this._commandPath, ...args],
@@ -122,25 +119,22 @@ export class GlobalProtectClient {
                 return;
             }
 
-            // Set up timeout
             timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, timeoutSeconds, () => {
                 if (completed) return GLib.SOURCE_REMOVE;
                 cleanup();
                 try {
                     proc.force_exit();
                 } catch (e) {
-                    // Process might have already exited
+                    // Process may have already exited.
                 }
                 reject(new Error(`Command timed out after ${timeoutSeconds} seconds`));
                 return GLib.SOURCE_REMOVE;
             });
             this._timeoutIds.add(timeoutId);
 
-            // Execute command - pass null for cancellable to avoid issues
             proc.communicate_utf8_async(null, null, (proc, result) => {
                 cleanup();
 
-                // Check if we were cancelled while waiting
                 if (this._cancellable && this._cancellable.is_cancelled()) {
                     reject(new Error('Operation cancelled'));
                     return;
@@ -174,7 +168,6 @@ export class GlobalProtectClient {
         return new Promise((resolve, reject) => {
             const timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
                 this._timeoutIds.delete(timeoutId);
-                // Check if cancelled during delay
                 if (this._cancellable && this._cancellable.is_cancelled()) {
                     reject(new Error('Operation cancelled'));
                 } else {
@@ -195,7 +188,6 @@ export class GlobalProtectClient {
      * @returns {Promise<{success: boolean, message: string, mfaRequired: boolean, mfaFailed: boolean}>}
      */
     async connect(portal, statusCallback = null, retryCount = 0, username = null) {
-        // Input validation
         if (!portal || typeof portal !== 'string' || portal.trim().length === 0) {
             throw new TypeError('Portal address must be a non-empty string');
         }
@@ -387,7 +379,6 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['rediscover-network'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
 
-        // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
@@ -407,7 +398,6 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['resubmit-hip'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
 
-        // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
@@ -439,7 +429,6 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['collect-log'], COMMAND_TIMEOUT_LOG_COLLECTION);
         const output = result.stdout + result.stderr;
 
-        // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
@@ -543,7 +532,7 @@ export class GlobalProtectClient {
                 try {
                     await this._executeCommand(['disconnect'], COMMAND_TIMEOUT_DEFAULT);
                 } catch (_e) {
-                    // Ignore disconnect errors during retry
+                    // Best-effort disconnect before retrying.
                 }
                 await this._delay(GATEWAY_RETRY_DELAY_MS);
                 return this.connectToGateway(gateway, statusCallback, retryCount + 1, portal, username);
@@ -619,12 +608,10 @@ export class GlobalProtectClient {
         const output = result.stdout + result.stderr;
         const trimmedStdout = (result.stdout || '').trim();
 
-        // Check for permission errors only if no useful output
         if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
             throw new Error(PERMISSION_ERROR_MESSAGE);
         }
 
-        // Retry on retryable errors
         if (this._isRetryableError(output) && retryCount < MAX_RETRY_COUNT) {
             await this._delay(RETRY_DELAY_MS);
             return this._executeShowCommand(flag, defaultValue, retryCount + 1);
@@ -668,22 +655,19 @@ export class GlobalProtectClient {
      * Cleanup method - cancel all operations and remove timeouts
      */
     destroy() {
-        // Cancel all subprocess operations
         if (this._cancellable && !this._cancellable.is_cancelled()) {
             this._cancellable.cancel();
         }
 
-        // Remove all timeouts
         for (const timeoutId of this._timeoutIds) {
             try {
                 GLib.source_remove(timeoutId);
             } catch (e) {
-                // Ignore errors during cleanup
+                // Source may already be removed.
             }
         }
         this._timeoutIds.clear();
 
-        // Don't create new cancellable - object is being destroyed
         this._cancellable = null;
     }
 }
