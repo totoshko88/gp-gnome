@@ -20,46 +20,26 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import Gio from 'gi://Gio';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {GlobalProtectClient} from './gpClient.js';
 import {StatusMonitor} from './statusMonitor.js';
 import {GlobalProtectIndicator} from './indicator.js';
-import {shouldDisconnectOnDisable} from './lockDecision.js';
 
-/**
- * gp-gnome Extension
- * Main extension class that manages the lifecycle of the GlobalProtect VPN indicator
- * For GlobalProtect CLI (PanGPLinux) integration
- */
 export default class GlobalProtectExtension extends Extension {
     constructor(metadata) {
         super(metadata);
-
-        // Initialize instance variables
         this._indicator = null;
         this._gpClient = null;
         this._statusMonitor = null;
         this._settings = null;
     }
 
-    /**
-     * Enable the extension
-     * Creates all components and adds indicator to panel
-     */
     enable() {
-        // Load GSettings
         this._settings = this.getSettings();
-
-        // Create GlobalProtectClient instance
         this._gpClient = new GlobalProtectClient(this._settings);
-
-        // Create StatusMonitor instance
         this._statusMonitor = new StatusMonitor(this._gpClient, this._settings);
-
-        // Create GlobalProtectIndicator instance
         this._indicator = new GlobalProtectIndicator(
             this._gpClient,
             this._statusMonitor,
@@ -67,72 +47,26 @@ export default class GlobalProtectExtension extends Extension {
             this.path
         );
 
-        // Add indicator to panel status area
         Main.panel.addToStatusArea(this.uuid, this._indicator);
-
-        // Start status monitoring
         this._statusMonitor.start();
     }
 
-    /**
-     * Decide whether disable() should disconnect the VPN.
-     *
-     * Pure, testable decision helper. GNOME switches the session mode to
-     * 'unlock-dialog' when the screen locks; with session-modes declared the
-     * extension survives the lock, but disable() can still run during a lock
-     * transition, so we must not tear down the VPN on a lock unless the user
-     * opted in.
-     *
-     * @param {string} currentMode - Main.sessionMode.currentMode value.
-     * @param {object} settings - GSettings-like object (get_boolean), or null.
-     * @returns {boolean} true if the VPN should be disconnected.
-     */
-    _shouldDisconnectOnDisable(currentMode, settings) {
-        return shouldDisconnectOnDisable(currentMode, settings);
-    }
-
-    /**
-     * Disable the extension
-     * Cleans up all resources and removes indicator from panel
-     * Auto-disconnect runs FIRST to ensure VPN disconnects on logout
-     */
     disable() {
-        // 1. Auto-disconnect FIRST - but only on a real teardown, not on a
-        //    screen lock (unless the user opted in). Decide before clearing
-        //    this._settings in step 5.
-        const currentMode = Main.sessionMode.currentMode;
-        if (this._shouldDisconnectOnDisable(currentMode, this._settings)) {
-            try {
-                Gio.Subprocess.new(
-                    ['globalprotect', 'disconnect'],
-                    Gio.SubprocessFlags.NONE
-                );
-            } catch (e) {
-                // Ignore - VPN might already be disconnected or CLI not available
-            }
-        } else {
-            console.info(`gp-gnome: keeping VPN connected on disable (mode=${currentMode})`);
-        }
-
-        // 2. Stop monitoring (prevents new operations)
         if (this._statusMonitor) {
             this._statusMonitor.destroy();
             this._statusMonitor = null;
         }
 
-        // 3. Cancel ongoing operations in gpClient
         if (this._gpClient) {
             this._gpClient.destroy();
             this._gpClient = null;
         }
 
-        // 4. Destroy UI last
         if (this._indicator) {
             this._indicator.destroy();
             this._indicator = null;
         }
 
-        // 5. Clear settings
         this._settings = null;
     }
 }

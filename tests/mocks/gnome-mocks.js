@@ -127,9 +127,7 @@ export class MockSettings {
     constructor() {
         this._data = {
             'portal-address': 'vpn.epam.com',
-            'poll-interval': 5,
-            'disconnect-on-lock': false,
-            'auto-disconnect-on-logout': true
+            'poll-interval': 5
         };
     }
     
