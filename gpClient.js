@@ -127,11 +127,7 @@ export class GlobalProtectClient {
                 completed = true;
 
                 if (timeoutId && this._timeoutIds.has(timeoutId)) {
-                    try {
-                        GLib.source_remove(timeoutId);
-                    } catch (e) {
-                        // Source may already be removed.
-                    }
+                    GLib.source_remove(timeoutId);
                     this._timeoutIds.delete(timeoutId);
                 }
             };
@@ -158,11 +154,7 @@ export class GlobalProtectClient {
             timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, timeoutSeconds, () => {
                 if (completed) return GLib.SOURCE_REMOVE;
                 finish();
-                try {
-                    proc.force_exit();
-                } catch (e) {
-                    // Process may have already exited.
-                }
+                proc.force_exit();
                 reject(new Error(`Command timed out after ${timeoutSeconds} seconds`));
                 return GLib.SOURCE_REMOVE;
             });
@@ -716,11 +708,7 @@ export class GlobalProtectClient {
      */
     cancelCurrentOperation() {
         if (this._activeProc) {
-            try {
-                this._activeProc.force_exit();
-            } catch (e) {
-                // Process may have already exited.
-            }
+            this._activeProc.force_exit();
             this._activeProc = null;
         }
 
@@ -741,11 +729,7 @@ export class GlobalProtectClient {
         }
 
         for (const timeoutId of this._timeoutIds) {
-            try {
-                GLib.source_remove(timeoutId);
-            } catch (e) {
-                // Source may already be removed.
-            }
+            GLib.source_remove(timeoutId);
         }
         this._timeoutIds.clear();
         this._lastLoggedError.clear();

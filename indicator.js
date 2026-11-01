@@ -1025,21 +1025,13 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         this._statusLabel = null;
 
         for (const timeoutId of this._timeoutIds) {
-            try {
-                GLib.source_remove(timeoutId);
-            } catch (e) {
-                console.error('Failed to remove timeout:', e);
-            }
+            GLib.source_remove(timeoutId);
         }
         this._timeoutIds.clear();
 
         this._signalIds.forEach(({obj, id}) => {
-            try {
-                if (obj && typeof obj.disconnect === 'function' && id) {
-                    obj.disconnect(id);
-                }
-            } catch (e) {
-                console.error('Failed to disconnect signal:', e);
+            if (obj && id) {
+                obj.disconnect(id);
             }
         });
         this._signalIds = [];

@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.5.3] - 2026-11-01
+
+### Changed
+- **EGO review — unnecessary try-catch wrappers** ([best-practices guideline](https://gjs.guide/extensions/review-guidelines/best-practices.html#avoid-unnecessary-try-catch-wrappers)): Removed try-catch blocks that wrapped standard methods which do not throw during normal execution. Kept the try-catch blocks around operations that genuinely can throw (subprocess spawn/communicate, CLI command calls).
+  - **`gpClient.js`**: Unwrapped `GLib.source_remove()` in the command cleanup helper and in `destroy()`, and `proc.force_exit()` in the command-timeout handler and in `cancelCurrentOperation()`.
+  - **`indicator.js`**: Unwrapped `GLib.source_remove()` and signal `disconnect()` in `destroy()`, and dropped the redundant `typeof obj.disconnect === 'function'` guard (built-in GObject method).
+- **metadata.json**: Bumped EGO `version` 14 → 15 and `version-name` to `1.5.3`.
+
 ## [1.5.2] - 2026-11-01
 
 ### Changed
