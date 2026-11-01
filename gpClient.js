@@ -63,6 +63,10 @@ export class GlobalProtectClient {
         this._cancellable = new Gio.Cancellable();
         this._timeoutIds = new Set();
         this._cancelledSignalId = null;
+        // The subprocess currently running, so an explicit user cancel can
+        // kill a long-lived `connect` (which blocks on browser SAML/MFA auth)
+        // instead of waiting for the command timeout to expire.
+        this._activeProc = null;
         // Last error logged per context, so a repeating poll failure (e.g. the
         // CLI being absent) is logged once rather than every few seconds.
         this._lastLoggedError = new Map();
@@ -142,9 +146,18 @@ export class GlobalProtectClient {
                 return;
             }
 
+            this._activeProc = proc;
+
+            const finish = () => {
+                cleanup();
+                if (this._activeProc === proc) {
+                    this._activeProc = null;
+                }
+            };
+
             timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, timeoutSeconds, () => {
                 if (completed) return GLib.SOURCE_REMOVE;
-                cleanup();
+                finish();
                 try {
                     proc.force_exit();
                 } catch (e) {
@@ -155,8 +168,8 @@ export class GlobalProtectClient {
             });
             this._timeoutIds.add(timeoutId);
 
-            proc.communicate_utf8_async(null, null, (proc, result) => {
-                cleanup();
+            proc.communicate_utf8_async(null, this._cancellable, (proc, result) => {
+                finish();
 
                 if (this._cancellable && this._cancellable.is_cancelled()) {
                     reject(new Error('Operation cancelled'));
@@ -693,6 +706,30 @@ export class GlobalProtectClient {
     extractLogFilePath(output) {
         const match = output.match(/saved to (.+\.tgz)/i);
         return match ? match[1] : null;
+    }
+
+    /**
+     * Abort the command currently running (e.g. a `connect` blocked on browser
+     * authentication) so the user's Cancel takes effect immediately instead of
+     * waiting for the command timeout. Kills the active subprocess, cancels the
+     * in-flight operation and arms a fresh cancellable for subsequent commands.
+     */
+    cancelCurrentOperation() {
+        if (this._activeProc) {
+            try {
+                this._activeProc.force_exit();
+            } catch (e) {
+                // Process may have already exited.
+            }
+            this._activeProc = null;
+        }
+
+        if (this._cancellable && !this._cancellable.is_cancelled()) {
+            this._cancellable.cancel();
+        }
+
+        // Re-arm so the client stays usable after a cancel.
+        this._cancellable = new Gio.Cancellable();
     }
 
     /**

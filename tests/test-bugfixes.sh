@@ -47,6 +47,20 @@ else
     echo "❌ getHostState does not handle the spurious host-state CLI output"
 fi
 
+# Check cancelling a connection attempt aborts the blocking CLI command
+# immediately instead of waiting for the command timeout
+if grep -q "cancelCurrentOperation()" gpClient.js; then
+    echo "✅ gpClient exposes cancelCurrentOperation()"
+else
+    echo "❌ gpClient missing cancelCurrentOperation()"
+fi
+
+if grep -q "_cancelConnectionAttempt()" indicator.js; then
+    echo "✅ toggle Cancel aborts the in-progress attempt immediately"
+else
+    echo "❌ toggle Cancel does not abort the in-progress attempt"
+fi
+
 echo ""
 echo "=========================================="
 echo "Manual Testing Instructions:"

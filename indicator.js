@@ -445,6 +445,15 @@ class GlobalProtectIndicator extends PanelMenu.Button {
      * @private
      */
     async _onToggleConnection() {
+        // While a connection attempt is in progress the toggle item reads
+        // "Cancel". The attempt blocks on `connect` (browser SAML/MFA), so a
+        // plain early-return would make Cancel do nothing until the command
+        // timeout expires. Instead, abort the in-flight operation immediately.
+        if (this._isConnecting || this._isMfaWaiting) {
+            this._cancelConnectionAttempt();
+            return;
+        }
+
         if (this._operationInProgress) {
             return;
         }
@@ -529,6 +538,12 @@ class GlobalProtectIndicator extends PanelMenu.Button {
                 this._updateMenu(currentStatus);
             }
 
+            // A user-initiated cancel aborts the blocking command with this
+            // message; it is expected flow, not an error to report.
+            if (e && typeof e.message === 'string' && e.message.includes('cancelled')) {
+                return;
+            }
+
             ErrorHandler.handle(e, 'Connection toggle failed', {
                 notify: true,
                 log: true,
@@ -545,6 +560,42 @@ class GlobalProtectIndicator extends PanelMenu.Button {
         } finally {
             this._operationInProgress = false;
         }
+    }
+
+    /**
+     * Cancel an in-progress connection attempt. Aborts the blocking CLI
+     * command, tears down any half-open session on the daemon side and
+     * restores the UI to the real status without waiting for a timeout.
+     * @private
+     */
+    async _cancelConnectionAttempt() {
+        this._isConnecting = false;
+        this._isMfaWaiting = false;
+
+        const status = this._statusMonitor.getCurrentStatus();
+        this._updateIcon(status);
+        this._updateMenu(status);
+
+        try {
+            this._gpClient.cancelCurrentOperation();
+            // Drop any half-established session the portal may have opened
+            // before the user cancelled, so the next attempt starts clean.
+            await this._gpClient.disconnect();
+        } catch (e) {
+            // Best-effort teardown; the status refresh below is what matters.
+        }
+
+        try {
+            await this._statusMonitor.forceUpdate();
+        } catch (e) {
+            // Status monitor will refresh on its next poll regardless.
+        }
+
+        const newStatus = this._statusMonitor.getCurrentStatus();
+        this._updateIcon(newStatus);
+        this._updateMenu(newStatus);
+
+        this._showNotification('GlobalProtect', 'Connection cancelled');
     }
 
     /**
