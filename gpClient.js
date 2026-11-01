@@ -649,14 +649,33 @@ export class GlobalProtectClient {
         return this._executeShowCommand('--error', 'No errors', retryCount);
     }
 
-    async getHostState(retryCount = 0) {
-        const result = await this._executeShowCommand('--host-state', '', retryCount);
+    async getHostState() {
+        const result = await this._executeCommand(['show', '--host-state'], COMMAND_TIMEOUT_SHOW);
+        const output = result.stdout + result.stderr;
+        const trimmedStdout = (result.stdout || '').trim();
 
-        if (result.length === 0) {
+        // The CLI frequently answers --host-state with the spurious "already
+        // established" / "Unable to establish a new GlobalProtect connection"
+        // line even when idle. That line also matches the permission patterns
+        // ("same user or another user"), so it must not be treated as real
+        // host-state text or a permission failure. Report the actual status
+        // from show --status instead of the misleading CLI output.
+        if (this._isRetryableError(output)) {
+            const status = await this.getStatus();
+            return status.connected
+                ? 'VPN is connected. Detailed host state is unavailable from the GlobalProtect CLI in this state.'
+                : 'VPN is not connected. No host state is reported while disconnected.';
+        }
+
+        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
+            return PERMISSION_ERROR_MESSAGE;
+        }
+
+        if (trimmedStdout.length === 0) {
             return 'No host state information available.\n\nThis may happen when:\n• VPN is not connected\n• GlobalProtect service is not running\n• Host state data is not available';
         }
 
-        return result;
+        return trimmedStdout;
     }
 
     async getNotifications(retryCount = 0) {

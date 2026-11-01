@@ -38,6 +38,15 @@ else
     echo "❌ disconnect not using forceUpdate()"
 fi
 
+# Check getHostState translates the spurious "already established" CLI output
+# into the real status instead of showing the misleading line / a false
+# permission error (CLI bug: --host-state answers "already established" when idle)
+if grep -Pzoq "async getHostState\(\)[\s\S]*?_isRetryableError\(output\)[\s\S]*?getStatus\(\)" gpClient.js; then
+    echo "✅ getHostState handles the spurious 'already established' CLI output"
+else
+    echo "❌ getHostState does not handle the spurious host-state CLI output"
+fi
+
 echo ""
 echo "=========================================="
 echo "Manual Testing Instructions:"
