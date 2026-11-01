@@ -38,6 +38,29 @@ else
     echo "❌ disconnect not using forceUpdate()"
 fi
 
+# Check getHostState translates the spurious "already established" CLI output
+# into the real status instead of showing the misleading line / a false
+# permission error (CLI bug: --host-state answers "already established" when idle)
+if grep -Pzoq "async getHostState\(\)[\s\S]*?_isRetryableError\(output\)[\s\S]*?getStatus\(\)" gpClient.js; then
+    echo "✅ getHostState handles the spurious 'already established' CLI output"
+else
+    echo "❌ getHostState does not handle the spurious host-state CLI output"
+fi
+
+# Check cancelling a connection attempt aborts the blocking CLI command
+# immediately instead of waiting for the command timeout
+if grep -q "cancelCurrentOperation()" gpClient.js; then
+    echo "✅ gpClient exposes cancelCurrentOperation()"
+else
+    echo "❌ gpClient missing cancelCurrentOperation()"
+fi
+
+if grep -q "_cancelConnectionAttempt()" indicator.js; then
+    echo "✅ toggle Cancel aborts the in-progress attempt immediately"
+else
+    echo "❌ toggle Cancel does not abort the in-progress attempt"
+fi
+
 echo ""
 echo "=========================================="
 echo "Manual Testing Instructions:"

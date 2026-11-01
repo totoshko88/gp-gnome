@@ -13,6 +13,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
+## [1.5.2] - 2026-10-31
+
+### Changed
+- **EGO review (review 75808, JustPerfection)**: Addressed both reviewer notes.
+  - **Removed `session-modes`**: The review guidelines allow `unlock-dialog` only when it is necessary for the extension to operate correctly, which is not the case here. The GlobalProtect daemon owns the VPN tunnel independently of the extension, so the connection survives a screen lock without the extension running. See the fix for issue #4 below.
+  - **Removed AI-style comments**: Stripped the restatement comments that merely describe the next line of code, plus the verbose reviewer-facing block above the clipboard call. Kept the comments that explain non-obvious behaviour (CLI bug handling, the gateway-switch daemon-session note, the status debounce, the disconnect-flicker guard, field-name matching). `indicator.js` went from 1711 to ~1000 lines.
+- **metadata.json**: Bumped EGO `version` 13 → 14 and added `version-name` (`1.5.2`) as the single human-readable version source.
+
+### Fixed
+- **Issue #4 fixed the EGO-correct way**: The 1.5.0 fix for the VPN dropping on screen lock declared `session-modes` so the extension survived the lock. The real root cause was that `disable()` itself ran `globalprotect disconnect`, and `disable()` is also called on the lock transition. `disable()` no longer disconnects the VPN at all; it is now a clean UI/monitor/timer teardown. The VPN stays connected on lock with no `session-modes` needed.
+- **Stale hardcoded versions**: The About dialog showed `Extension version: 1.4.0` / `© 2025` and `prefs.js` showed `Version 1.5.1`. Both now read `version-name` from `metadata.json`.
+
+### Removed
+- **Dead and broken code** (reviewer: unnecessary code): Removed the ~320-line hand-built settings dialog in `indicator.js` that duplicated `prefs.js` and called nonexistent `gpClient` methods (`setConfig`, `setLogLevel`). The "Settings" menu item now opens the real preferences via `Extension.openPreferences()`. Also removed `_changePortal()` (dead code), `_reportIssue()` and its menu item (called nonexistent `gpClient.reportIssue()`), and `_clearCredentials()` / `_importCertificate()` (only reachable from the removed dialog; `_importCertificate()` called nonexistent `gpClient.importCertificate()`).
+- **Settings `disconnect-on-lock` and `auto-disconnect-on-logout`**: Removed both schema keys, their preference rows, the `lockDecision.js` helper and its unit test, now that `disable()` never disconnects. Portal, username, poll interval, SSL-only and log level remain configurable in the preferences window.
+
 ## [1.5.1] - 2026-10-02
 
 ### Fixed

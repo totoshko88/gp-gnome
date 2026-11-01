@@ -8,6 +8,7 @@
 
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
+import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 function isValidPortal(address) {
@@ -30,7 +31,6 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
             icon_name: 'preferences-system-symbolic'
         });
 
-        // Connection group
         const portalGroup = new Adw.PreferencesGroup({
             title: _('Connection'),
             description: _('VPN portal configuration')
@@ -62,7 +62,6 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
 
         page.add(portalGroup);
 
-        // Options group
         const optionsGroup = new Adw.PreferencesGroup({
             title: _('Options')
         });
@@ -74,36 +73,28 @@ export default class GlobalProtectPreferences extends ExtensionPreferences {
         settings.bind('ssl-only', sslRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         optionsGroup.add(sslRow);
 
-        const pollRow = new Adw.SpinRow.new_with_range(3, 60, 1);
-        pollRow.title = _('Poll Interval (seconds)');
-        pollRow.subtitle = _('How often to check VPN status');
+        const pollRow = new Adw.SpinRow({
+            title: _('Poll Interval (seconds)'),
+            subtitle: _('How often to check VPN status'),
+            adjustment: new Gtk.Adjustment({
+                lower: 3,
+                upper: 60,
+                step_increment: 1,
+                page_increment: 5
+            })
+        });
         settings.bind('poll-interval', pollRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         optionsGroup.add(pollRow);
 
-        const disconnectOnLockRow = new Adw.SwitchRow({
-            title: _('Disconnect on screen lock'),
-            subtitle: _('Disconnect the VPN when the screen locks (off keeps it connected)')
-        });
-        settings.bind('disconnect-on-lock', disconnectOnLockRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-        optionsGroup.add(disconnectOnLockRow);
-
-        const autoDisconnectOnLogoutRow = new Adw.SwitchRow({
-            title: _('Auto-disconnect on logout'),
-            subtitle: _('Disconnect the VPN automatically when logging out')
-        });
-        settings.bind('auto-disconnect-on-logout', autoDisconnectOnLogoutRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-        optionsGroup.add(autoDisconnectOnLogoutRow);
-
         page.add(optionsGroup);
 
-        // About group
         const aboutGroup = new Adw.PreferencesGroup({
             title: _('About')
         });
 
         aboutGroup.add(new Adw.ActionRow({
             title: 'gp-gnome',
-            subtitle: 'Version 1.5.1 | Anton Isaiev'
+            subtitle: `Version ${this.metadata['version-name'] ?? ''} | Anton Isaiev`
         }));
 
         aboutGroup.add(new Adw.ActionRow({

@@ -51,7 +51,6 @@ export const StatusMonitor = GObject.registerClass({
         this._disconnectDebounceCount = 0;
         this._disconnectDebounceThreshold = 2; // Require 2 consecutive disconnected polls
 
-        // Read poll interval from settings and connect to changes
         if (this._settings) {
             this._pollInterval = this._settings.get_int('poll-interval') * 1000;
             this._settingsChangedId = this._settings.connect('changed::poll-interval', () => {
@@ -66,18 +65,15 @@ export const StatusMonitor = GObject.registerClass({
      * @private
      */
     _startPollingTimeout() {
-        // Remove existing timeout if any
         if (this._timeoutId) {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = null;
         }
 
-        // Don't start if stopped
         if (this._isStopped) {
             return;
         }
 
-        // Create new timeout
         this._timeoutId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
             this._pollInterval,
@@ -101,7 +97,6 @@ export const StatusMonitor = GObject.registerClass({
 
         this._pollInterval = newInterval;
 
-        // Restart polling with new interval if currently running
         if (this._timeoutId && !this._isStopped) {
             this._startPollingTimeout();
         }
@@ -112,17 +107,14 @@ export const StatusMonitor = GObject.registerClass({
      * Begins periodic polling of connection status
      */
     start() {
-        // Don't start if already running
         if (this._timeoutId) {
             return;
         }
 
         this._isStopped = false;
 
-        // Do initial poll immediately
         this._poll();
 
-        // Set up periodic polling
         this._startPollingTimeout();
     }
 
@@ -138,7 +130,6 @@ export const StatusMonitor = GObject.registerClass({
             this._timeoutId = null;
         }
 
-        // Disconnect settings listener
         if (this._settingsChangedId && this._settings) {
             this._settings.disconnect(this._settingsChangedId);
             this._settingsChangedId = null;
@@ -165,7 +156,6 @@ export const StatusMonitor = GObject.registerClass({
      * @private
      */
     async _poll() {
-        // Don't poll if stopped
         if (this._isStopped) {
             return;
         }
@@ -173,18 +163,15 @@ export const StatusMonitor = GObject.registerClass({
         try {
             const status = await this._gpClient.getStatus();
 
-            // Check again after async operation
             if (this._isStopped) {
                 return;
             }
 
-            // Only emit signal if status actually changed
             if (this._hasStatusChanged(status)) {
                 this._currentStatus = status;
                 this.emit('status-changed', status);
             }
         } catch (e) {
-            // Log error but don't stop polling
             ErrorHandler.handle(e, 'Failed to poll VPN status', {notify: false, log: true});
         }
     }
@@ -196,7 +183,6 @@ export const StatusMonitor = GObject.registerClass({
      * @private
      */
     _hasStatusChanged(newStatus) {
-        // First poll - always consider it changed
         if (this._currentStatus === null) {
             return true;
         }
@@ -204,26 +190,22 @@ export const StatusMonitor = GObject.registerClass({
         const wasConnected = this._currentStatus && this._currentStatus.connected;
         const isConnected = newStatus && newStatus.connected;
 
-        // If transitioning from connected to disconnected, apply debounce
+        // Debounce a connected -> disconnected transition: the CLI sometimes
+        // reports a transient disconnect, so require consecutive polls.
         if (wasConnected && !isConnected) {
             this._disconnectDebounceCount++;
 
-            // Only report disconnect after threshold consecutive polls
             if (this._disconnectDebounceCount < this._disconnectDebounceThreshold) {
-                // Don't report change yet - might be temporary
                 return false;
             }
-            // Threshold reached - report the disconnect
             this._disconnectDebounceCount = 0;
             return true;
         }
 
-        // Reset debounce counter if connected
         if (isConnected) {
             this._disconnectDebounceCount = 0;
         }
 
-        // Compare status objects for other changes
         return JSON.stringify(newStatus) !== JSON.stringify(this._currentStatus);
     }
 

@@ -24,7 +24,6 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import {parseManualGatewayOutput} from './gatewayParser.js';
 
-// Constants for timeouts and delays
 const COMMAND_TIMEOUT_DEFAULT = 10;
 const COMMAND_TIMEOUT_MFA = 30;
 const COMMAND_TIMEOUT_LOG_COLLECTION = 60;
@@ -64,6 +63,33 @@ export class GlobalProtectClient {
         this._cancellable = new Gio.Cancellable();
         this._timeoutIds = new Set();
         this._cancelledSignalId = null;
+        // The subprocess currently running, so an explicit user cancel can
+        // kill a long-lived `connect` (which blocks on browser SAML/MFA auth)
+        // instead of waiting for the command timeout to expire.
+        this._activeProc = null;
+        // Last error logged per context, so a repeating poll failure (e.g. the
+        // CLI being absent) is logged once rather than every few seconds.
+        this._lastLoggedError = new Map();
+    }
+
+    /**
+     * Log an error for a polled operation only when its message changes, to
+     * avoid flooding the journal with the same line on every poll. Pass a
+     * null message to clear the context after a successful call.
+     * @param {string} context - Stable key identifying the operation.
+     * @param {?string} message - Error message, or null to reset.
+     * @private
+     */
+    _logPollError(context, message) {
+        if (message === null) {
+            this._lastLoggedError.delete(context);
+            return;
+        }
+        if (this._lastLoggedError.get(context) === message) {
+            return;
+        }
+        this._lastLoggedError.set(context, message);
+        console.error(`${context}: ${message}`);
     }
 
     /**
@@ -87,7 +113,6 @@ export class GlobalProtectClient {
             throw new Error('GlobalProtect CLI is not installed or not in PATH');
         }
 
-        // Check if already cancelled or destroyed before starting
         if (!this._cancellable || this._cancellable.is_cancelled()) {
             throw new Error('Operation cancelled before execution');
         }
@@ -105,13 +130,12 @@ export class GlobalProtectClient {
                     try {
                         GLib.source_remove(timeoutId);
                     } catch (e) {
-                        // Ignore
+                        // Source may already be removed.
                     }
                     this._timeoutIds.delete(timeoutId);
                 }
             };
 
-            // Create subprocess first
             try {
                 proc = Gio.Subprocess.new(
                     [this._commandPath, ...args],
@@ -122,25 +146,31 @@ export class GlobalProtectClient {
                 return;
             }
 
-            // Set up timeout
+            this._activeProc = proc;
+
+            const finish = () => {
+                cleanup();
+                if (this._activeProc === proc) {
+                    this._activeProc = null;
+                }
+            };
+
             timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, timeoutSeconds, () => {
                 if (completed) return GLib.SOURCE_REMOVE;
-                cleanup();
+                finish();
                 try {
                     proc.force_exit();
                 } catch (e) {
-                    // Process might have already exited
+                    // Process may have already exited.
                 }
                 reject(new Error(`Command timed out after ${timeoutSeconds} seconds`));
                 return GLib.SOURCE_REMOVE;
             });
             this._timeoutIds.add(timeoutId);
 
-            // Execute command - pass null for cancellable to avoid issues
-            proc.communicate_utf8_async(null, null, (proc, result) => {
-                cleanup();
+            proc.communicate_utf8_async(null, this._cancellable, (proc, result) => {
+                finish();
 
-                // Check if we were cancelled while waiting
                 if (this._cancellable && this._cancellable.is_cancelled()) {
                     reject(new Error('Operation cancelled'));
                     return;
@@ -174,7 +204,6 @@ export class GlobalProtectClient {
         return new Promise((resolve, reject) => {
             const timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
                 this._timeoutIds.delete(timeoutId);
-                // Check if cancelled during delay
                 if (this._cancellable && this._cancellable.is_cancelled()) {
                     reject(new Error('Operation cancelled'));
                 } else {
@@ -195,7 +224,6 @@ export class GlobalProtectClient {
      * @returns {Promise<{success: boolean, message: string, mfaRequired: boolean, mfaFailed: boolean}>}
      */
     async connect(portal, statusCallback = null, retryCount = 0, username = null) {
-        // Input validation
         if (!portal || typeof portal !== 'string' || portal.trim().length === 0) {
             throw new TypeError('Portal address must be a non-empty string');
         }
@@ -326,9 +354,10 @@ export class GlobalProtectClient {
                     }
                 }
             }
+            this._logPollError('Failed to get VPN status', null);
             return status;
         } catch (e) {
-            console.error('Failed to get VPN status:', e.message);
+            this._logPollError('Failed to get VPN status', e.message);
             return {connected: false, portal: null, gateway: null};
         }
     }
@@ -387,7 +416,6 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['rediscover-network'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
 
-        // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
@@ -407,7 +435,6 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['resubmit-hip'], COMMAND_TIMEOUT_DEFAULT);
         const output = result.stdout + result.stderr;
 
-        // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
@@ -439,7 +466,6 @@ export class GlobalProtectClient {
         const result = await this._executeCommand(['collect-log'], COMMAND_TIMEOUT_LOG_COLLECTION);
         const output = result.stdout + result.stderr;
 
-        // Check for permission/ownership errors - only if command failed
         if (!result.success && this._isPermissionError(output)) {
             throw new Error('GlobalProtect is running under a different user account. Please run the command as the correct user or restart GlobalProtect.');
         }
@@ -488,9 +514,10 @@ export class GlobalProtectClient {
                     currentGatewayAddress === gateway.address;
             }
 
+            this._logPollError('Failed to get gateways', null);
             return gateways;
         } catch (e) {
-            console.error('Failed to get gateways:', e.message);
+            this._logPollError('Failed to get gateways', e.message);
             return [];
         }
     }
@@ -543,7 +570,7 @@ export class GlobalProtectClient {
                 try {
                     await this._executeCommand(['disconnect'], COMMAND_TIMEOUT_DEFAULT);
                 } catch (_e) {
-                    // Ignore disconnect errors during retry
+                    // Best-effort disconnect before retrying.
                 }
                 await this._delay(GATEWAY_RETRY_DELAY_MS);
                 return this.connectToGateway(gateway, statusCallback, retryCount + 1, portal, username);
@@ -619,12 +646,10 @@ export class GlobalProtectClient {
         const output = result.stdout + result.stderr;
         const trimmedStdout = (result.stdout || '').trim();
 
-        // Check for permission errors only if no useful output
         if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
             throw new Error(PERMISSION_ERROR_MESSAGE);
         }
 
-        // Retry on retryable errors
         if (this._isRetryableError(output) && retryCount < MAX_RETRY_COUNT) {
             await this._delay(RETRY_DELAY_MS);
             return this._executeShowCommand(flag, defaultValue, retryCount + 1);
@@ -637,14 +662,33 @@ export class GlobalProtectClient {
         return this._executeShowCommand('--error', 'No errors', retryCount);
     }
 
-    async getHostState(retryCount = 0) {
-        const result = await this._executeShowCommand('--host-state', '', retryCount);
+    async getHostState() {
+        const result = await this._executeCommand(['show', '--host-state'], COMMAND_TIMEOUT_SHOW);
+        const output = result.stdout + result.stderr;
+        const trimmedStdout = (result.stdout || '').trim();
 
-        if (result.length === 0) {
+        // The CLI frequently answers --host-state with the spurious "already
+        // established" / "Unable to establish a new GlobalProtect connection"
+        // line even when idle. That line also matches the permission patterns
+        // ("same user or another user"), so it must not be treated as real
+        // host-state text or a permission failure. Report the actual status
+        // from show --status instead of the misleading CLI output.
+        if (this._isRetryableError(output)) {
+            const status = await this.getStatus();
+            return status.connected
+                ? 'VPN is connected. Detailed host state is unavailable from the GlobalProtect CLI in this state.'
+                : 'VPN is not connected. No host state is reported while disconnected.';
+        }
+
+        if (trimmedStdout.length === 0 && this._isPermissionError(output)) {
+            return PERMISSION_ERROR_MESSAGE;
+        }
+
+        if (trimmedStdout.length === 0) {
             return 'No host state information available.\n\nThis may happen when:\n• VPN is not connected\n• GlobalProtect service is not running\n• Host state data is not available';
         }
 
-        return result;
+        return trimmedStdout;
     }
 
     async getNotifications(retryCount = 0) {
@@ -665,25 +709,47 @@ export class GlobalProtectClient {
     }
 
     /**
-     * Cleanup method - cancel all operations and remove timeouts
+     * Abort the command currently running (e.g. a `connect` blocked on browser
+     * authentication) so the user's Cancel takes effect immediately instead of
+     * waiting for the command timeout. Kills the active subprocess, cancels the
+     * in-flight operation and arms a fresh cancellable for subsequent commands.
      */
-    destroy() {
-        // Cancel all subprocess operations
+    cancelCurrentOperation() {
+        if (this._activeProc) {
+            try {
+                this._activeProc.force_exit();
+            } catch (e) {
+                // Process may have already exited.
+            }
+            this._activeProc = null;
+        }
+
         if (this._cancellable && !this._cancellable.is_cancelled()) {
             this._cancellable.cancel();
         }
 
-        // Remove all timeouts
+        // Re-arm so the client stays usable after a cancel.
+        this._cancellable = new Gio.Cancellable();
+    }
+
+    /**
+     * Cleanup method - cancel all operations and remove timeouts
+     */
+    destroy() {
+        if (this._cancellable && !this._cancellable.is_cancelled()) {
+            this._cancellable.cancel();
+        }
+
         for (const timeoutId of this._timeoutIds) {
             try {
                 GLib.source_remove(timeoutId);
             } catch (e) {
-                // Ignore errors during cleanup
+                // Source may already be removed.
             }
         }
         this._timeoutIds.clear();
+        this._lastLoggedError.clear();
 
-        // Don't create new cancellable - object is being destroyed
         this._cancellable = null;
     }
 }

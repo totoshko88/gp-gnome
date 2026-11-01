@@ -51,22 +51,17 @@ export class ErrorHandler {
             uiCallback = null
         } = options;
 
-        // Get user-friendly error message
         const userMessage = this._getUserMessage(error);
 
-        // Log error with sanitized message
         if (log) {
             const sanitizedMessage = this._sanitizeForLog(error.message || error.toString());
             console.error(`gp-gnome: ${context}: ${sanitizedMessage}`);
         }
 
-        // Show error notification to user using Main.notifyError()
-        // This displays a red/warning style notification
         if (notify) {
             Main.notifyError('GlobalProtect Error', userMessage);
         }
 
-        // Execute UI callback if provided
         if (uiCallback && typeof uiCallback === 'function') {
             uiCallback(error, userMessage);
         }
@@ -83,57 +78,48 @@ export class ErrorHandler {
         const message = error.message || error.toString();
         const lowerMessage = message.toLowerCase();
 
-        // Command not found / not installed
         if (lowerMessage.includes('not installed') ||
             lowerMessage.includes('not in path') ||
             lowerMessage.includes('command not found')) {
             return 'GlobalProtect CLI is not installed or not in PATH';
         }
 
-        // Timeout errors
         if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
             return 'Operation timed out. Please try again.';
         }
 
-        // Authentication errors
         if (lowerMessage.includes('authentication') ||
             lowerMessage.includes('auth') ||
             lowerMessage.includes('credentials')) {
             return 'Authentication failed. Please check your credentials.';
         }
 
-        // Portal/connection errors
         if (lowerMessage.includes('portal')) {
             return 'Invalid portal address or portal unreachable';
         }
 
-        // Network errors
         if (lowerMessage.includes('network') ||
             lowerMessage.includes('connection refused') ||
             lowerMessage.includes('unreachable')) {
             return 'Network error. Please check your connection.';
         }
 
-        // Permission errors
         if (lowerMessage.includes('permission') ||
             lowerMessage.includes('access denied')) {
             return 'Permission denied. You may need administrator privileges.';
         }
 
-        // MFA errors
         if (lowerMessage.includes('mfa') ||
             lowerMessage.includes('multi-factor') ||
             lowerMessage.includes('2fa')) {
             return 'Multi-factor authentication required or failed';
         }
 
-        // Configuration errors
         if (lowerMessage.includes('configuration') ||
             lowerMessage.includes('config')) {
             return 'Configuration error. Please check your settings.';
         }
 
-        // Generic fallback - sanitize and return
         return this._sanitizeForUser(message);
     }
 
@@ -151,28 +137,22 @@ export class ErrorHandler {
 
         let sanitized = message;
 
-        // Remove passwords
         sanitized = sanitized.replace(/password[=:]\s*\S+/gi, 'password=***');
         sanitized = sanitized.replace(/passwd[=:]\s*\S+/gi, 'passwd=***');
         sanitized = sanitized.replace(/pwd[=:]\s*\S+/gi, 'pwd=***');
 
-        // Remove tokens
         sanitized = sanitized.replace(/token[=:]\s*\S+/gi, 'token=***');
         sanitized = sanitized.replace(/bearer\s+\S+/gi, 'bearer ***');
         sanitized = sanitized.replace(/authorization[=:]\s*\S+/gi, 'authorization=***');
 
-        // Remove cookies
         sanitized = sanitized.replace(/cookie[=:]\s*\S+/gi, 'cookie=***');
         sanitized = sanitized.replace(/set-cookie[=:]\s*\S+/gi, 'set-cookie=***');
 
-        // Remove API keys
         sanitized = sanitized.replace(/api[_-]?key[=:]\s*\S+/gi, 'api_key=***');
         sanitized = sanitized.replace(/key[=:]\s*\S+/gi, 'key=***');
 
-        // Remove secrets
         sanitized = sanitized.replace(/secret[=:]\s*\S+/gi, 'secret=***');
 
-        // Remove session IDs
         sanitized = sanitized.replace(/session[_-]?id[=:]\s*\S+/gi, 'session_id=***');
         sanitized = sanitized.replace(/sessionid[=:]\s*\S+/gi, 'sessionid=***');
 
@@ -191,15 +171,12 @@ export class ErrorHandler {
             return 'An error occurred. Please check the logs for details.';
         }
 
-        // If message is too long, truncate it
         if (message.length > 200) {
             message = `${message.substring(0, 197)}...`;
         }
 
-        // Apply basic sanitization
         let sanitized = this._sanitizeForLog(message);
 
-        // Make it more user-friendly
         if (sanitized.includes('Error:')) {
             sanitized = sanitized.replace(/^Error:\s*/i, '');
         }
