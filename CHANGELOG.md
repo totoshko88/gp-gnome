@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking
 - Additional language translations
 
-## [1.5.2] - 2026-10-31
+## [1.5.2] - 2026-11-01
 
 ### Changed
 - **EGO review (review 75808, JustPerfection)**: Addressed both reviewer notes.
@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Issue #4 fixed the EGO-correct way**: The 1.5.0 fix for the VPN dropping on screen lock declared `session-modes` so the extension survived the lock. The real root cause was that `disable()` itself ran `globalprotect disconnect`, and `disable()` is also called on the lock transition. `disable()` no longer disconnects the VPN at all; it is now a clean UI/monitor/timer teardown. The VPN stays connected on lock with no `session-modes` needed.
 - **Stale hardcoded versions**: The About dialog showed `Extension version: 1.4.0` / `© 2025` and `prefs.js` showed `Version 1.5.1`. Both now read `version-name` from `metadata.json`.
+- **Preferences window failed to open**: `prefs.js` constructed the poll-interval row with `new Adw.SpinRow.new_with_range(...)`, which is invalid because `new_with_range` is a static factory, not a constructor. GJS threw `SpinRow.new_with_range is not a constructor` and the whole settings window failed to display. Replaced with the idiomatic `new Adw.SpinRow({ adjustment: new Gtk.Adjustment({...}) })`.
+- **Misleading Host State output**: `getHostState()` returned the CLI's spurious "already established / Unable to establish a new GlobalProtect connection" line verbatim, and because that line matches the permission patterns it could even surface a false "running under a different user account" error. It now detects the bogus line and reports the real connection state from `show --status` instead.
+- **Cancel did nothing during a connection attempt**: while connecting, the toggle item reads "Cancel", but clicking it hit the `_operationInProgress` guard and returned without aborting, so the status stayed on "Connecting..." until the 30s command timeout expired. `gpClient.cancelCurrentOperation()` now force-exits the blocking subprocess and re-arms the cancellable, and the toggle routes to `_cancelConnectionAttempt()` which aborts the command, tears down any half-open session and refreshes status immediately.
+- **Excessive log output**: Repeated polling failures (for example when the GlobalProtect CLI is absent) were logged on every poll. They are now logged once per distinct message and reset on success, so the journal is no longer flooded.
 
 ### Removed
 - **Dead and broken code** (reviewer: unnecessary code): Removed the ~320-line hand-built settings dialog in `indicator.js` that duplicated `prefs.js` and called nonexistent `gpClient` methods (`setConfig`, `setLogLevel`). The "Settings" menu item now opens the real preferences via `Extension.openPreferences()`. Also removed `_changePortal()` (dead code), `_reportIssue()` and its menu item (called nonexistent `gpClient.reportIssue()`), and `_clearCredentials()` / `_importCertificate()` (only reachable from the removed dialog; `_importCertificate()` called nonexistent `gpClient.importCertificate()`).
