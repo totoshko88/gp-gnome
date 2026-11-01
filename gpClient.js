@@ -63,6 +63,29 @@ export class GlobalProtectClient {
         this._cancellable = new Gio.Cancellable();
         this._timeoutIds = new Set();
         this._cancelledSignalId = null;
+        // Last error logged per context, so a repeating poll failure (e.g. the
+        // CLI being absent) is logged once rather than every few seconds.
+        this._lastLoggedError = new Map();
+    }
+
+    /**
+     * Log an error for a polled operation only when its message changes, to
+     * avoid flooding the journal with the same line on every poll. Pass a
+     * null message to clear the context after a successful call.
+     * @param {string} context - Stable key identifying the operation.
+     * @param {?string} message - Error message, or null to reset.
+     * @private
+     */
+    _logPollError(context, message) {
+        if (message === null) {
+            this._lastLoggedError.delete(context);
+            return;
+        }
+        if (this._lastLoggedError.get(context) === message) {
+            return;
+        }
+        this._lastLoggedError.set(context, message);
+        console.error(`${context}: ${message}`);
     }
 
     /**
@@ -318,9 +341,10 @@ export class GlobalProtectClient {
                     }
                 }
             }
+            this._logPollError('Failed to get VPN status', null);
             return status;
         } catch (e) {
-            console.error('Failed to get VPN status:', e.message);
+            this._logPollError('Failed to get VPN status', e.message);
             return {connected: false, portal: null, gateway: null};
         }
     }
@@ -477,9 +501,10 @@ export class GlobalProtectClient {
                     currentGatewayAddress === gateway.address;
             }
 
+            this._logPollError('Failed to get gateways', null);
             return gateways;
         } catch (e) {
-            console.error('Failed to get gateways:', e.message);
+            this._logPollError('Failed to get gateways', e.message);
             return [];
         }
     }
@@ -667,6 +692,7 @@ export class GlobalProtectClient {
             }
         }
         this._timeoutIds.clear();
+        this._lastLoggedError.clear();
 
         this._cancellable = null;
     }
